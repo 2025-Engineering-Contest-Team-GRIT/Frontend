@@ -4,10 +4,15 @@ import { DashboardView } from '@/components/views/DashboardView';
 import { StudentStatus } from '@/types';
 import { useStudent } from '@/hooks/useData';
 import { useNavigation } from '@/hooks/useStore';
+import { CSRErrorBoundary } from './ErrorBoundary';
 
-export function DashboardPageClient() {
-  const { data: student, isLoading } = useStudent(StudentStatus.SOPHOMORE);
+function DashboardContent() {
+  const { data: student, isLoading, error } = useStudent(StudentStatus.SOPHOMORE);
   const { navigateToView } = useNavigation();
+
+  if (error) {
+    throw error; // Will be caught by error boundary
+  }
 
   if (isLoading || !student) {
     return <div className="p-8">로딩 중...</div>;
@@ -24,5 +29,13 @@ export function DashboardPageClient() {
       setActiveView={navigateToView}
       onViewPublicProfile={handleViewPublicProfile}
     />
+  );
+}
+
+export function DashboardPageClient() {
+  return (
+    <CSRErrorBoundary>
+      <DashboardContent />
+    </CSRErrorBoundary>
   );
 }
