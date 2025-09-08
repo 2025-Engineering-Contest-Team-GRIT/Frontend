@@ -1,5 +1,6 @@
+'use client';
+
 import React, { useState } from 'react';
-import { IconCheck, IconRefreshCw } from './common';
 // react-icons 라이브러리에서 필요한 아이콘을 가져옵니다.
 import {
     LuUser,
@@ -44,7 +45,7 @@ import {
     LuSearch,
 } from 'react-icons/lu';
 
-import { BiBarChart } from 'react-icons/bi';
+import { BiBarChart, BiPieChart } from 'react-icons/bi';
 
 // 각 아이콘을 export하여 다른 컴포넌트에서 직접 import할 수 있도록 합니다.
 export {
@@ -91,6 +92,8 @@ export {
     LuSearch as IconSearch,
 };
 
+export { BiPieChart as IconPieChart };
+
 export const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div className={`bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-slate-200/80 ${className}`}>
     {children}
@@ -130,7 +133,7 @@ export const RefreshButton = ({ onRefresh, text, className = '' }: { onRefresh: 
         >
             {isDone ? (
                 <>
-                    <IconCheck className="w-4 h-4" />
+                    <LuCheck className="w-4 h-4" />
                     <span>완료!</span>
                 </>
             ) : isLoading ? (
@@ -140,7 +143,7 @@ export const RefreshButton = ({ onRefresh, text, className = '' }: { onRefresh: 
                 </>
             ) : (
                 <>
-                    <IconRefreshCw className="w-4 h-4" />
+                    <LuRefreshCw className="w-4 h-4" />
                     <span>{text}</span>
                 </>
             )}

@@ -68,29 +68,29 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // Group courses by semester
-  const coursesBySemester = courses.reduce((acc, course) => {
-    const semester = course.semester || 1;
-    if (!acc[semester]) {
-      acc[semester] = [];
-    }
-    acc[semester].push(course);
-    return acc;
-  }, {} as Record<number, CourseType[]>);
+  // Group courses by semester (useMemo로 메모이제이션)
+  const coursesBySemester = React.useMemo(() => {
+    return courses.reduce((acc, course) => {
+      const semester = course.semester || 1;
+      if (!acc[semester]) {
+        acc[semester] = [];
+      }
+      acc[semester].push(course);
+      return acc;
+    }, {} as Record<number, CourseType[]>);
+  }, [courses]);
 
   // Calculate course positions
   useLayoutEffect(() => {
     const positions: Record<string, { x: number, y: number }> = {};
-    
     Object.entries(coursesBySemester).forEach(([semester, semesterCourses]) => {
       semesterCourses.forEach((course, index) => {
         const position = getCoursePosition(Number(semester), index, semesterCourses);
         positions[course.id] = position;
       });
-    });
-
+    }); 
     setCoursePositions(positions);
-  }, [courses, coursesBySemester]);
+  }, [courses]);
 
   // Handle course focus for highlighting connections
   const handleCourseFocus = useCallback((courseId: string | null) => {

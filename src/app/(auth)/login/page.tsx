@@ -1,4 +1,6 @@
 
+
+"use client";
 import { LoginScreen } from '@/components/views/LoginScreen';
 
 export default function LoginPage() {
