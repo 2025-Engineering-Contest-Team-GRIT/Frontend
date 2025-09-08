@@ -133,6 +133,7 @@ export const useUIStore = create<UIState>()(
   )
 );
 
+export const useCourseStore = create<CourseState>()(
   devtools(
     (set) => ({
       selectedCourseForModal: null,
