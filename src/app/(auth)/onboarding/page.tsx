@@ -1,15 +1,18 @@
-
-import { OnboardingScreen } from '@/components/views/OnboardingScreen';
-import { mockStudents } from '@/data/mockData';
-import { StudentStatus } from '@/types';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { OnboardingScreen } from "@/components/views/OnboardingScreen";
+import { useAuth } from "@/hooks/useStore";
 
 export default function OnboardingPage() {
-  // SSR: 상태 관리용 no-op 핸들러 전달
-  return (
-    <OnboardingScreen
-      student={mockStudents[StudentStatus.FRESHMAN]}
-      onComplete={() => {}}
-      onExit={() => {}}
-    />
-  );
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (isAuthenticated === false) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!user) return null;
+  return <OnboardingScreen student={user} onComplete={() => {}} onExit={() => {}} />;
 }

@@ -25,17 +25,13 @@ export const SSRHeader = ({ student, onLogout, title = "한성 길라잡이" }: 
               {student.studentId} | {student.major}
             </p>
           </div>
-          {onLogout ? (
+          {onLogout && (
             <button
               onClick={onLogout}
               className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             >
               <IconLogOut />
             </button>
-          ) : (
-            <div className="p-2 rounded-full text-slate-300">
-              <IconLogOut />
-            </div>
           )}
         </div>
       )}

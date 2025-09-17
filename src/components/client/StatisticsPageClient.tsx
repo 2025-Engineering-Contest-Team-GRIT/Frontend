@@ -1,17 +1,26 @@
-'use client';
+"use client";
 
-import { StatisticsView } from '@/components/views/StatisticsView';
-import { StudentStatus } from '@/types';
-import { useStudent, useStatistics, useCourses } from '@/hooks/useData';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { StatisticsView } from "@/components/views/StatisticsView";
+import { useAuth } from "@/hooks/useStore";
+import { useStatistics, useCourses } from "@/hooks/useData";
 
 export function StatisticsPageClient() {
-  const { data: student, isLoading: loadingStudent } = useStudent(StudentStatus.SOPHOMORE);
-  const { data: statistics, isLoading: loadingStatistics } = useStatistics(StudentStatus.SOPHOMORE);
+  const { user, isAuthenticated } = useAuth();
+  const { data: statistics, isLoading: loadingStatistics } = useStatistics();
   const { data: allCourses, isLoading: loadingCourses } = useCourses();
+  const router = useRouter();
 
-  if (loadingStudent || loadingStatistics || loadingCourses || !student || !statistics || !allCourses) {
+  React.useEffect(() => {
+    if (isAuthenticated === false) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!user || loadingStatistics || loadingCourses || !statistics || !allCourses) {
     return <div className="p-8">로딩 중...</div>;
   }
 
-  return <StatisticsView student={student} allCourses={allCourses} />;
+  return <StatisticsView student={user} allCourses={allCourses} />;
 }

@@ -1,31 +1,34 @@
-'use client';
+"use client";
 
-import { DashboardView } from '@/components/views/DashboardView';
-import { StudentStatus } from '@/types';
-import { useStudent } from '@/hooks/useData';
-import { useNavigation } from '@/hooks/useStore';
-import { CSRErrorBoundary } from './ErrorBoundary';
+import { DashboardView } from "@/components/views/DashboardView";
+import { useAuth, useNavigation } from "@/hooks/useStore";
+import { CSRErrorBoundary } from "./ErrorBoundary";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 
 function DashboardContent() {
-  const { data: student, isLoading, error } = useStudent(StudentStatus.SOPHOMORE);
+  const { user, isAuthenticated } = useAuth();
   const { navigateToView } = useNavigation();
+  const router = useRouter();
 
-  if (error) {
-    throw error; // Will be caught by error boundary
-  }
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
 
-  if (isLoading || !student) {
+  if (!user) {
     return <div className="p-8">로딩 중...</div>;
   }
 
   const handleViewPublicProfile = () => {
     // Navigate to public profile
-    console.log('Navigate to public profile');
+    console.log("Navigate to public profile");
   };
 
   return (
-    <DashboardView 
-      student={student} 
+    <DashboardView
+      student={user}
       setActiveView={navigateToView}
       onViewPublicProfile={handleViewPublicProfile}
     />
