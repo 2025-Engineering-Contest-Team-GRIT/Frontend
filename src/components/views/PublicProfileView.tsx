@@ -1,12 +1,25 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '../Button';
-import { Toast } from '../Toast';
-import { fadeIn } from '../animations';
-import type { Student, TimetableSlot } from '@/types';
-import { CourseStatus } from '@/types';
-import { Card, IconCompass, IconLogOut, IconBarChart2, IconMortarBoard, IconCheck, IconTrophy, IconTarget, IconCalendar, IconBook, IconTag, IconArrowLeft } from '../common';
+import React, { useState } from "react";
+import { Button } from "../Button";
+import { Toast } from "../Toast";
+import { fadeIn } from "../animations";
+import type { Student, TimetableSlot } from "@/types";
+import { CourseStatus } from "@/types";
+import {
+  Card,
+  IconCompass,
+  IconLogOut,
+  IconBarChart2,
+  IconMortarBoard,
+  IconCheck,
+  IconTrophy,
+  IconTarget,
+  IconCalendar,
+  IconBook,
+  IconTag,
+  IconArrowLeft,
+} from "../common";
 // import { BusinessCard } from '../components/BusinessCard';
 
 // 임시 BusinessCard 컴포넌트
@@ -21,8 +34,8 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ student, orientation, showS
     <div className="text-center">
       <h2 className="text-xl font-bold text-slate-800">{student.name}</h2>
       {showStudentId && <p className="text-sm text-slate-500 mt-1">{student.studentId}</p>}
-      <p className="text-blue-600 font-semibold mt-2">{student.tracks.join(' / ')}</p>
-      <p className="text-slate-600 mt-1">{student.careerPaths.join(' / ')}</p>
+      <p className="text-blue-600 font-semibold mt-2">{student.tracks.join(" / ")}</p>
+      <p className="text-slate-600 mt-1">{student.careerPaths.join(" / ")}</p>
     </div>
   </div>
 );
@@ -35,8 +48,10 @@ interface StatCardProps {
   className?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon, label, value, subValue, className = '' }) => (
-  <div className={`bg-white/70 backdrop-blur-sm p-4 rounded-xl flex items-center gap-4 ${className}`}>
+const StatCard: React.FC<StatCardProps> = ({ icon, label, value, subValue, className = "" }) => (
+  <div
+    className={`bg-white/70 backdrop-blur-sm p-4 rounded-xl flex items-center gap-4 ${className}`}
+  >
     <div className="w-12 h-12 flex-shrink-0 rounded-lg flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 text-blue-600">
       {icon}
     </div>
@@ -54,8 +69,8 @@ interface CompactTimetableProps {
 }
 
 const CompactTimetable: React.FC<CompactTimetableProps> = ({ student }) => {
-  const days = ['월', '화', '수', '목', '금'];
-  const timeSlots = Array.from({ length: 11 }, (_, i) => `${String(9 + i).padStart(2, '0')}:00`);
+  const days = ["월", "화", "수", "목", "금"];
+  const timeSlots = Array.from({ length: 11 }, (_, i) => `${String(9 + i).padStart(2, "0")}:00`);
 
   if (!student.isTimetableConfigured || !student.timetable?.length) {
     return (
@@ -67,8 +82,8 @@ const CompactTimetable: React.FC<CompactTimetableProps> = ({ student }) => {
 
   const getGridPosition = (slot: TimetableSlot) => {
     const dayIndex = days.indexOf(slot.day) + 2;
-    const [startHour, startMinute] = slot.startTime.split(':').map(Number);
-    const [endHour, endMinute] = slot.endTime.split(':').map(Number);
+    const [startHour, startMinute] = slot.startTime.split(":").map(Number);
+    const [endHour, endMinute] = slot.endTime.split(":").map(Number);
 
     const startRow = (startHour - 9) * 4 + startMinute / 15 + 2;
     const endRow = (endHour - 9) * 4 + endMinute / 15 + 2;
@@ -84,7 +99,11 @@ const CompactTimetable: React.FC<CompactTimetableProps> = ({ student }) => {
       {/* Header */}
       <div className="row-start-1"></div>
       {days.map((day, i) => (
-        <div key={day} className="text-center font-semibold text-slate-600" style={{ gridColumn: i + 2 }}>
+        <div
+          key={day}
+          className="text-center font-semibold text-slate-600"
+          style={{ gridColumn: i + 2 }}
+        >
           {day}
         </div>
       ))}
@@ -96,7 +115,7 @@ const CompactTimetable: React.FC<CompactTimetableProps> = ({ student }) => {
           className="row-start-2 text-right text-[10px] text-slate-400 pr-2 -mt-2"
           style={{ gridRow: i * 4 + 2 }}
         >
-          {time.split(':')[0]}
+          {time.split(":")[0]}
         </div>
       ))}
       {Array.from({ length: 44 }).map((_, i) => (
@@ -133,10 +152,8 @@ const CompletedCoursesList: React.FC<CompletedCoursesListProps> = ({ student, sh
       student.roadmap.semesters
         .flatMap((s) => s.courses)
         .filter((c) => c.status === CourseStatus.COMPLETED)
-        .sort((a, b) =>
-          showGrades && a.grade && b.grade ? b.grade.localeCompare(a.grade) : 0
-        ),
-    [student.roadmap, showGrades]
+        .sort((a, b) => (showGrades && a.grade && b.grade ? b.grade.localeCompare(a.grade) : 0)),
+    [student.roadmap, showGrades],
   );
 
   if (completedCourses.length === 0) {
@@ -175,19 +192,21 @@ interface PublicProfileViewProps {
   isExternal: boolean;
 }
 
-
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   student,
   onGoBack,
   isExternal,
 }) => {
-  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type?: "success" | "error" | "info";
+  } | null>(null);
   const totalCompletedCourses = React.useMemo(
     () =>
       student.roadmap.semesters
         .flatMap((s) => s.courses)
         .filter((c) => c.status === CourseStatus.COMPLETED).length,
-    [student.roadmap]
+    [student.roadmap],
   );
 
   const displayOptions = student.profileDisplayOptions || {
@@ -197,10 +216,13 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   };
 
   const displayCareerPath =
-    student.careerPaths.length > 0 ? student.careerPaths.join(' / ') : '미설정';
+    student.careerPaths.length > 0 ? student.careerPaths.join(" / ") : "미설정";
 
   const handleGoBack = () => {
-    setToast({ message: isExternal ? '로그인 화면으로 이동합니다.' : '내 대시보드로 이동합니다.', type: 'info' });
+    setToast({
+      message: isExternal ? "로그인 화면으로 이동합니다." : "내 대시보드로 이동합니다.",
+      type: "info",
+    });
     setTimeout(() => {
       setToast(null);
       onGoBack();
@@ -210,9 +232,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   // ...existing code...
   return (
     <div className={`min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8 ${fadeIn}`}>
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="max-w-5xl mx-auto">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2 text-slate-500">
@@ -225,7 +245,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             className="flex items-center gap-2 font-semibold text-slate-600 bg-white/80 py-2 px-4 rounded-lg shadow-sm hover:bg-white hover:text-slate-800 transition-all"
           >
             {isExternal ? <IconLogOut /> : <IconArrowLeft />}
-            <span>{isExternal ? '로그인 화면으로' : '내 대시보드로'}</span>
+            <span>{isExternal ? "로그인 화면으로" : "내 대시보드로"}</span>
           </Button>
         </header>
 
@@ -262,7 +282,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 <StatCard
                   icon={<IconTrophy />}
                   label="전체 평점(GPA)"
-                  value={student.gpa?.toFixed(2) ?? 'N/A'}
+                  value={student.gpa?.toFixed(2) ?? "N/A"}
                   subValue="/ 4.5"
                 />
               )}
@@ -275,7 +295,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ minHeight: '400px' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ minHeight: "400px" }}>
             {displayOptions.showTimetable && (
               <Card className="p-6">
                 <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">

@@ -491,6 +491,7 @@ const CompletionStep = ({ onFinish, onBack }: { onFinish: () => void; onBack: ()
   </Card>
 );
 
+export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScreenProps) => {
   const [step, setStep] = useState(1);
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);

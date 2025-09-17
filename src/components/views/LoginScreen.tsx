@@ -1,38 +1,32 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, IconCompass, IconUser, IconLock, IconLink } from '../common';
-import type { Student } from '@/types';
-import { StudentStatus } from '@/types';
-import { mockStudents } from '../../data/mockData';
+import React, { useState } from "react";
+import { Card, IconCompass, IconUser, IconLock, IconLink } from "../common";
+// import type { Student } from "@/types";
 
 type LoginScreenProps = {
-  onLogin: (student: Student) => void;
+  onLogin: (studentId: string, password: string) => Promise<void>;
   onViewPublicProfileDemo: () => void;
 };
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onViewPublicProfileDemo }) => {
-  const [studentId, setStudentId] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [studentId, setStudentId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
-
-    // Simulate network delay
-    setTimeout(() => {
-      if (studentId === '2200001' && password === '*Qwer1234') {
-        onLogin(mockStudents[StudentStatus.SOPHOMORE]);
-      } else if (studentId === '2500001' && password === '*Qwer1234') {
-        onLogin(mockStudents[StudentStatus.FRESHMAN]);
-      } else {
-        setError('학번 또는 비밀번호가 올바르지 않습니다.');
-        setIsLoading(false);
-      }
-    }, 1000);
+    try {
+      await onLogin(studentId, password);
+    } catch (err: any) {
+      setError(err.message || "로그인에 실패했습니다.");
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -63,7 +57,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onViewPublicP
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 placeholder="학번을 입력하세요"
-                className="w-full pl-10 pr-3 py-2 border bg-slate-100 border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                className="w-full pl-10 pr-3 py-2 border bg-slate-100 border-slate-300 text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -82,7 +76,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onViewPublicP
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요"
-                className="w-full pl-10 pr-3 py-2 border bg-slate-100 border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                className="w-full pl-10 pr-3 py-2 border bg-slate-100 border-slate-300 text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                 required
               />
             </div>

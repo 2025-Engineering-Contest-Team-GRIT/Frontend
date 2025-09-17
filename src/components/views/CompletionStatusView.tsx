@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useRef } from 'react';
-import { Card, IconStar, IconMapPin, IconPieChart, IconSearch } from '../common';
-import { ProgressBar } from '../ProgressBar';
-import { Button } from '../Button';
-import type { Student, CourseCategory, AllCourses, Track } from '@/types';
-import { CourseStatus, CourseCategory as CourseCategoryValue } from '@/types';
+import React, { useState, useMemo, useRef } from "react";
+import { Card, IconStar, IconMapPin, IconPieChart, IconSearch } from "../common";
+import { ProgressBar } from "../ProgressBar";
+import { Button } from "../Button";
+import type { Student, CourseCategory, AllCourses, Track } from "@/types";
+import { CourseStatus, CourseCategory as CourseCategoryValue } from "@/types";
 
 interface FilterButtonProps {
   label: string;
@@ -16,8 +16,8 @@ interface FilterButtonProps {
 const FilterButton: React.FC<FilterButtonProps> = ({ label, isActive, onClick }) => (
   <Button
     onClick={onClick}
-    variant={isActive ? 'primary' : 'secondary'}
-    className={`px-4 py-2 text-sm rounded-lg shadow-none ${isActive ? '' : 'text-slate-600'}`}
+    variant={isActive ? "primary" : "secondary"}
+    className={`px-4 py-2 text-sm rounded-lg shadow-none ${isActive ? "" : "text-slate-600"}`}
   >
     {label}
   </Button>
@@ -32,8 +32,8 @@ interface TabButtonProps {
 const TabButton: React.FC<TabButtonProps> = ({ label, isActive, onClick }) => (
   <Button
     onClick={onClick}
-    variant={isActive ? 'primary' : 'secondary'}
-    className={`px-3 py-1.5 text-sm rounded-md w-full sm:w-auto shadow-none ${isActive ? 'text-blue-600' : 'text-slate-500'}`}
+    variant={isActive ? "primary" : "secondary"}
+    className={`px-3 py-1.5 text-sm rounded-md w-full sm:w-auto shadow-none ${isActive ? "text-blue-600" : "text-slate-500"}`}
   >
     {label}
   </Button>
@@ -48,7 +48,7 @@ interface CoursePopoverProps {
   } | null;
   student: Student;
   onToggleFavorite: (courseId: string) => void;
-  onToggleRoadmap: (course: AllCourses) => void;
+  onToggleRoadmap: (courseId: string) => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }
@@ -59,26 +59,32 @@ const CoursePopover: React.FC<CoursePopoverProps> = ({
   onToggleFavorite,
   onToggleRoadmap,
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
 }) => {
   if (!popover) return null;
   const { course } = popover;
-  
+
   const isFavorite = student.favoriteCourseIds?.includes(course.id);
-  const isInRoadmap = student.roadmap.semesters.flatMap(s => s.courses).some(c => c.id === course.id);
-  const isEnrolledOrCompleted = student.roadmap.semesters.flatMap(s => s.courses).some(c => 
-    c.id === course.id && (c.status === CourseStatus.ENROLLED || c.status === CourseStatus.COMPLETED)
-  );
+  const isInRoadmap = student.roadmap.semesters
+    .flatMap((s) => s.courses)
+    .some((c) => c.id === course.id);
+  const isEnrolledOrCompleted = student.roadmap.semesters
+    .flatMap((s) => s.courses)
+    .some(
+      (c) =>
+        c.id === course.id &&
+        (c.status === CourseStatus.ENROLLED || c.status === CourseStatus.COMPLETED),
+    );
 
   return (
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className="absolute z-30 w-64 p-3 bg-white rounded-xl shadow-2xl border border-slate-200/80 animate-fade-in"
-      style={{ 
-        top: popover.top, 
+      style={{
+        top: popover.top,
         left: popover.left,
-        transform: 'translate(-50%, -100%)',
+        transform: "translate(-50%, -100%)",
       }}
     >
       <div className="flex flex-col text-slate-800">
@@ -93,28 +99,28 @@ const CoursePopover: React.FC<CoursePopoverProps> = ({
             )}
             {course.track && (
               <span className="bg-slate-100 px-2 py-0.5 rounded-full">
-                {course.track.replace(' 트랙', '')}
+                {course.track.replace(" 트랙", "")}
               </span>
             )}
           </div>
         </div>
         <div className="flex flex-col gap-2 mt-3 pt-2 border-t border-slate-200/80">
-          <Button 
-            onClick={() => onToggleFavorite(course.id)} 
-            variant={isFavorite ? 'danger' : 'secondary'}
-            className={`w-full text-sm py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 ${isFavorite ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-slate-100 hover:bg-slate-200'}`}
+          <Button
+            onClick={() => onToggleFavorite(course.id)}
+            variant={isFavorite ? "danger" : "secondary"}
+            className={`w-full text-sm py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 ${isFavorite ? "bg-amber-100 text-amber-800 hover:bg-amber-200" : "bg-slate-100 hover:bg-slate-200"}`}
           >
             <IconStar className="w-4 h-4 text-yellow-400" />
-            <span>{isFavorite ? '관심 과목 해제' : '관심 과목 추가'}</span>
+            <span>{isFavorite ? "관심 과목 해제" : "관심 과목 추가"}</span>
           </Button>
-          <Button 
-            onClick={() => onToggleRoadmap(course)} 
+          <Button
+            onClick={() => onToggleRoadmap(course.id)}
             disabled={isEnrolledOrCompleted}
-            variant={isInRoadmap ? 'danger' : 'primary'}
-            className={`w-full text-sm py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 ${isInRoadmap ? 'bg-rose-100 text-rose-800 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'} disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed`}
+            variant={isInRoadmap ? "danger" : "primary"}
+            className={`w-full text-sm py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 ${isInRoadmap ? "bg-rose-100 text-rose-800 hover:bg-rose-200" : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"} disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed`}
           >
             <IconMapPin className="w-4 h-4 text-rose-400" />
-            <span>{isInRoadmap ? '로드맵에서 제거' : '로드맵에 추가'}</span>
+            <span>{isInRoadmap ? "로드맵에서 제거" : "로드맵에 추가"}</span>
           </Button>
         </div>
       </div>
@@ -127,20 +133,22 @@ const CoursePopover: React.FC<CoursePopoverProps> = ({
 interface CompletionStatusViewProps {
   student: Student;
   onToggleFavorite: (courseId: string) => void;
-  onToggleRoadmap: (course: AllCourses) => void;
+  onToggleRoadmap: (courseId: string) => void;
   allCourses: AllCourses[];
 }
 
-export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({ 
-  student, 
-  onToggleFavorite, 
+export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
+  student,
+  onToggleFavorite,
   onToggleRoadmap,
-  allCourses 
+  allCourses,
 }) => {
-  const [activeFilter, setActiveFilter] = useState<'all' | Track | 'liberal'>('all');
-  const [activeTab, setActiveTab] = useState<'favorites' | '1' | '2' | '3' | '4' | 'all'>('favorites');
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [activeFilter, setActiveFilter] = useState<"all" | Track | "liberal">("all");
+  const [activeTab, setActiveTab] = useState<"favorites" | "1" | "2" | "3" | "4" | "all">(
+    "favorites",
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [popover, setPopover] = useState<{
     key: string;
@@ -161,32 +169,36 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
     if (popoverTimerRef.current) clearTimeout(popoverTimerRef.current);
   };
 
-  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>, course: AllCourses, cardKey: string) => {
+  const handleMouseEnter = (
+    event: React.MouseEvent<HTMLDivElement>,
+    course: AllCourses,
+    cardKey: string,
+  ) => {
     if (popoverTimerRef.current) clearTimeout(popoverTimerRef.current);
     const targetElement = event.currentTarget;
-    
+
     popoverTimerRef.current = window.setTimeout(() => {
       if (!containerRef.current || !targetElement) return;
       const cardRect = targetElement.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
-      
+
       const top = cardRect.top - containerRect.top + containerRef.current.scrollTop - 16;
       const left = cardRect.left - containerRect.left + cardRect.width / 2;
-      
+
       setPopover({ key: cardKey, top, left, course });
     }, 400);
   };
 
   // Student tracks filtering
   const studentTracks = useMemo(() => {
-    return student.tracks.filter(track => track !== '트랙 미지정');
+    return student.tracks.filter((track) => track !== "트랙 미지정");
   }, [student.tracks]);
 
   // Completed courses mapping
   const completedCoursesById = useMemo(() => {
     const map = new Map();
-    student.roadmap.semesters.forEach(semester => {
-      semester.courses.forEach(course => {
+    student.roadmap.semesters.forEach((semester) => {
+      semester.courses.forEach((course) => {
         if (course.status === CourseStatus.COMPLETED) {
           map.set(course.id, course);
         }
@@ -197,10 +209,10 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
 
   const completedCoursesByTrack = useMemo(() => {
     const map = new Map();
-    student.roadmap.semesters.forEach(semester => {
-      semester.courses.forEach(course => {
+    student.roadmap.semesters.forEach((semester) => {
+      semester.courses.forEach((course) => {
         if (course.status === CourseStatus.COMPLETED) {
-          const key = `${course.id}-${course.track || 'common'}`;
+          const key = `${course.id}-${course.track || "common"}`;
           map.set(key, course);
         }
       });
@@ -213,26 +225,26 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
     let filtered = allCourses;
 
     // Filter by track/liberal
-    if (activeFilter === 'liberal') {
-      filtered = filtered.filter(course => course.category.toString().startsWith('교양'));
-    } else if (activeFilter !== 'all') {
-      filtered = filtered.filter(course => course.track === activeFilter);
+    if (activeFilter === "liberal") {
+      filtered = filtered.filter((course) => course.category.toString().startsWith("교양"));
+    } else if (activeFilter !== "all") {
+      filtered = filtered.filter((course) => course.track === activeFilter);
     }
 
     // Filter by year/favorites
-    if (activeTab === 'favorites') {
-      filtered = filtered.filter(course => student.favoriteCourseIds?.includes(course.id));
-    } else if (activeTab !== 'all') {
+    if (activeTab === "favorites") {
+      filtered = filtered.filter((course) => student.favoriteCourseIds?.includes(course.id));
+    } else if (activeTab !== "all") {
       const year = parseInt(activeTab);
-      filtered = filtered.filter(course => course.year === year);
+      filtered = filtered.filter((course) => course.year === year);
     }
 
     // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(course =>
-        course.name.toLowerCase().includes(term) ||
-        course.id.toLowerCase().includes(term)
+      filtered = filtered.filter(
+        (course) =>
+          course.name.toLowerCase().includes(term) || course.id.toLowerCase().includes(term),
       );
     }
 
@@ -241,30 +253,30 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
 
   // Progress calculation
   const progressData = useMemo(() => {
-    const isAllFilter = activeFilter === 'all';
+    const isAllFilter = activeFilter === "all";
     let coursesToCheck = allCourses;
 
-    if (activeFilter === 'liberal') {
-      coursesToCheck = allCourses.filter(course => course.category.toString().startsWith('교양'));
-    } else if (activeFilter !== 'all') {
-      coursesToCheck = allCourses.filter(course => course.track === activeFilter);
+    if (activeFilter === "liberal") {
+      coursesToCheck = allCourses.filter((course) => course.category.toString().startsWith("교양"));
+    } else if (activeFilter !== "all") {
+      coursesToCheck = allCourses.filter((course) => course.track === activeFilter);
     }
 
     const completedCourses = isAllFilter ? completedCoursesById : completedCoursesByTrack;
-    
+
     const result: Record<string, { completed: number; total: number; percentage: number }> = {
-      total: { completed: 0, total: coursesToCheck.length, percentage: 0 }
+      total: { completed: 0, total: coursesToCheck.length, percentage: 0 },
     };
 
     // Initialize category counters
-    Object.values(CourseCategoryValue).forEach(category => {
+    Object.values(CourseCategoryValue).forEach((category) => {
       result[category] = { completed: 0, total: 0, percentage: 0 };
     });
 
-    coursesToCheck.forEach(course => {
-      const key = isAllFilter ? course.id : `${course.id}-${course.track || 'common'}`;
+    coursesToCheck.forEach((course) => {
+      const key = isAllFilter ? course.id : `${course.id}-${course.track || "common"}`;
       const isCompleted = completedCourses.has(key);
-      
+
       if (isCompleted) {
         result.total.completed++;
         result[course.category].completed++;
@@ -273,8 +285,9 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
     });
 
     // Calculate percentages
-    result.total.percentage = result.total.total > 0 ? Math.round((result.total.completed / result.total.total) * 100) : 0;
-    Object.values(CourseCategoryValue).forEach(category => {
+    result.total.percentage =
+      result.total.total > 0 ? Math.round((result.total.completed / result.total.total) * 100) : 0;
+    Object.values(CourseCategoryValue).forEach((category) => {
       const data = result[category];
       data.percentage = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
     });
@@ -284,37 +297,48 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
 
   // Group courses by category
   const coursesByCategory = useMemo(() => {
-    return displayCourses.reduce((acc, course) => {
-      if (!acc[course.category]) {
-        acc[course.category] = [];
-      }
-      acc[course.category].push(course);
-      return acc;
-    }, {} as Record<CourseCategory, AllCourses[]>);
+    return displayCourses.reduce(
+      (acc, course) => {
+        if (!acc[course.category]) {
+          acc[course.category] = [];
+        }
+        acc[course.category].push(course);
+        return acc;
+      },
+      {} as Record<CourseCategory, AllCourses[]>,
+    );
   }, [displayCourses]);
 
-  const filterTitle = activeFilter === 'all' ? '전체' : activeFilter === 'liberal' ? '교양' : activeFilter.replace(' 트랙', '');
+  const filterTitle =
+    activeFilter === "all"
+      ? "전체"
+      : activeFilter === "liberal"
+        ? "교양"
+        : activeFilter.replace(" 트랙", "");
 
   const tabs = [
-    { id: 'favorites', label: '관심과목' },
-    { id: '1', label: '1학년' },
-    { id: '2', label: '2학년' },
-    { id: '3', label: '3학년' },
-    { id: '4', label: '4학년' },
-    { id: 'all', label: '전체' },
+    { id: "favorites", label: "관심과목" },
+    { id: "1", label: "1학년" },
+    { id: "2", label: "2학년" },
+    { id: "3", label: "3학년" },
+    { id: "4", label: "4학년" },
+    { id: "all", label: "전체" },
   ] as const;
 
-  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type?: "success" | "error" | "info";
+  } | null>(null);
 
   // 관심과목/로드맵 토글 시 Toast 표시 예시
   const handleToggleFavoriteWithToast = (courseId: string) => {
     onToggleFavorite(courseId);
-    setToast({ message: '관심 과목이 변경되었습니다.', type: 'success' });
+    setToast({ message: "관심 과목이 변경되었습니다.", type: "success" });
     setTimeout(() => setToast(null), 1800);
   };
-  const handleToggleRoadmapWithToast = (course: AllCourses) => {
-    onToggleRoadmap(course);
-    setToast({ message: '로드맵이 변경되었습니다.', type: 'info' });
+  const handleToggleRoadmapWithToast = (courseId: string) => {
+    onToggleRoadmap(courseId);
+    setToast({ message: "로드맵이 변경되었습니다.", type: "info" });
     setTimeout(() => setToast(null), 1800);
   };
 
@@ -328,35 +352,50 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
             </div>
             <span>이수 현황</span>
           </h2>
-          <p className="text-slate-500 mt-1">전체 전공 및 교양 과목 대비 이수 현황을 확인해보세요.</p>
+          <p className="text-slate-500 mt-1">
+            전체 전공 및 교양 과목 대비 이수 현황을 확인해보세요.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 bg-slate-100 p-1 rounded-lg animate-fade-in">
-          <FilterButton label="전체" isActive={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
-          {studentTracks.map(track => (
-            <FilterButton 
-              key={track} 
-              label={track.replace(' 트랙', '')} 
-              isActive={activeFilter === track} 
-              onClick={() => setActiveFilter(track)} 
+          <FilterButton
+            label="전체"
+            isActive={activeFilter === "all"}
+            onClick={() => setActiveFilter("all")}
+          />
+          {studentTracks.map((track) => (
+            <FilterButton
+              key={track}
+              label={track.replace(" 트랙", "")}
+              isActive={activeFilter === track}
+              onClick={() => setActiveFilter(track)}
             />
           ))}
-          <FilterButton label="교양" isActive={activeFilter === 'liberal'} onClick={() => setActiveFilter('liberal')} />
+          <FilterButton
+            label="교양"
+            isActive={activeFilter === "liberal"}
+            onClick={() => setActiveFilter("liberal")}
+          />
         </div>
       </div>
-      
+
       <div className="mt-6 space-y-6">
         <Card className="p-6 animate-fade-in">
           <h3 className="font-bold text-slate-700 mb-2">
             {filterTitle} 진행률 ({progressData.total.completed} / {progressData.total.total})
           </h3>
-          <ProgressBar value={progressData.total.completed} max={progressData.total.total} className="mb-6" showLabel />
-          
+          <ProgressBar
+            value={progressData.total.completed}
+            max={progressData.total.total}
+            className="mb-6"
+            showLabel
+          />
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
-            {Object.values(CourseCategoryValue).map(category => {
+            {Object.values(CourseCategoryValue).map((category) => {
               if (!progressData[category] || progressData[category].total === 0) return null;
               return (
-                <div 
-                  key={category} 
+                <div
+                  key={category}
                   className="p-4 bg-slate-50 rounded-xl cursor-pointer transition-all hover:bg-white hover:shadow-lg hover:-translate-y-1 border border-slate-200/80 animate-pop"
                 >
                   <p className="font-semibold text-slate-500">{category}</p>
@@ -373,8 +412,8 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
         <Card className="p-6 animate-fade-in">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-lg animate-pop">
-              {tabs.map(tab => (
-                <TabButton 
+              {tabs.map((tab) => (
+                <TabButton
                   key={tab.id}
                   label={tab.label}
                   isActive={activeTab === tab.id}
@@ -382,7 +421,7 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
                 />
               ))}
             </div>
-            
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <IconSearch className="w-4 h-4 text-slate-400" />
@@ -405,34 +444,48 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
                     {category} ({courses.length}개 과목)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {courses.map(course => {
-                      const isAllFilter = activeFilter === 'all';
+                    {courses.map((course) => {
+                      const isAllFilter = activeFilter === "all";
                       const completedInfo = isAllFilter
                         ? completedCoursesById.get(course.id)
-                        : completedCoursesByTrack.get(`${course.id}-${course.track || 'common'}`);
-                      
+                        : completedCoursesByTrack.get(`${course.id}-${course.track || "common"}`);
+
                       const isCompleted = !!completedInfo;
-                      const isLiberal = course.category.toString().startsWith('교양');
-                      const showTrackForNotCompleted = !isLiberal && (
-                        course.category === CourseCategoryValue.FOUNDATION || 
-                        course.category === CourseCategoryValue.MANDATORY
-                      );
-                      
-                      const bgColor = isCompleted ? (isLiberal ? 'bg-emerald-100' : 'bg-indigo-100') : 'bg-slate-100';
-                      const textColor = isCompleted ? (isLiberal ? 'text-emerald-900' : 'text-indigo-900') : 'text-slate-600';
-                      const cardKey = isAllFilter ? course.id : `${course.id}-${course.track || 'common'}`;
+                      const isLiberal = course.category.toString().startsWith("교양");
+                      const showTrackForNotCompleted =
+                        !isLiberal &&
+                        (course.category === CourseCategoryValue.FOUNDATION ||
+                          course.category === CourseCategoryValue.MANDATORY);
+
+                      const bgColor = isCompleted
+                        ? isLiberal
+                          ? "bg-emerald-100"
+                          : "bg-indigo-100"
+                        : "bg-slate-100";
+                      const textColor = isCompleted
+                        ? isLiberal
+                          ? "text-emerald-900"
+                          : "text-indigo-900"
+                        : "text-slate-600";
+                      const cardKey = isAllFilter
+                        ? course.id
+                        : `${course.id}-${course.track || "common"}`;
 
                       const isFavorite = student.favoriteCourseIds?.includes(course.id);
-                      const isInRoadmap = student.roadmap.semesters.flatMap(s => s.courses).some(c => c.id === course.id);
+                      const isInRoadmap = student.roadmap.semesters
+                        .flatMap((s) => s.courses)
+                        .some((c) => c.id === course.id);
 
                       return (
-                        <div 
-                          key={cardKey} 
+                        <div
+                          key={cardKey}
                           onMouseEnter={(e) => handleMouseEnter(e, course, cardKey)}
                           onMouseLeave={handleMouseLeave}
                           className="relative rounded-lg transition-all duration-200 shadow-sm animate-pop"
                         >
-                          <div className={`p-3 rounded-lg h-full flex flex-col justify-between ${bgColor} ${textColor}`}>
+                          <div
+                            className={`p-3 rounded-lg h-full flex flex-col justify-between ${bgColor} ${textColor}`}
+                          >
                             <div>
                               <div className="flex justify-between items-start gap-2">
                                 <p className="font-bold flex-1 pr-6">{course.name}</p>
@@ -452,7 +505,9 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
                             </div>
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-[11px] font-medium">
                               {course.year && course.semester && (
-                                <span className={`px-2 py-0.5 rounded-full ${isCompleted ? 'bg-white/70' : 'bg-slate-200/70'}`}>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full ${isCompleted ? "bg-white/70" : "bg-slate-200/70"}`}
+                                >
                                   {course.year}학년 {course.semester}학기
                                 </span>
                               )}
@@ -461,14 +516,14 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
                                 if (isCompleted && completedInfo.track) {
                                   return (
                                     <span className="px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
-                                      {completedInfo.track.replace(' 트랙', '')}
+                                      {completedInfo.track.replace(" 트랙", "")}
                                     </span>
                                   );
                                 }
                                 if (!isCompleted && showTrackForNotCompleted && course.track) {
                                   return (
                                     <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
-                                      {course.track.replace(' 트랙', '')}
+                                      {course.track.replace(" 트랙", "")}
                                     </span>
                                   );
                                 }
@@ -494,8 +549,8 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
           )}
         </Card>
       </div>
-      
-      <CoursePopover 
+
+      <CoursePopover
         popover={popover}
         student={student}
         onToggleFavorite={handleToggleFavoriteWithToast}
@@ -505,7 +560,9 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
       />
       {toast && (
         <div className="animate-fade-in">
-          <div className={`fixed bottom-8 right-8 z-50 px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-blue-600 text-white'}`}>
+          <div
+            className={`fixed bottom-8 right-8 z-50 px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 ${toast.type === "success" ? "bg-emerald-600 text-white" : toast.type === "error" ? "bg-rose-600 text-white" : "bg-blue-600 text-white"}`}
+          >
             <span className="font-semibold">{toast.message}</span>
           </div>
         </div>
