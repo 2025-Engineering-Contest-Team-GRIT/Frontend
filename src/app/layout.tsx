@@ -25,6 +25,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        {/* 웹사이트 파비콘(로고 아이콘) 지정 */}
+        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

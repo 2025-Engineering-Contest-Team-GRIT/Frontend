@@ -201,7 +201,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ timeTable, onRefre
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <Card className="p-4 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-blue-100 rounded-full flex items-center justify-center">
-              <IconBook />
+              <IconBook color="gray" />
             </div>
             <h4 className="font-semibold text-slate-700">수강 과목</h4>
             <p className="text-2xl font-bold text-blue-600">{timeTable.length}</p>
@@ -209,7 +209,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ timeTable, onRefre
 
           <Card className="p-4 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
-              <IconClock />
+              <IconClock color="gray" />
             </div>
             <h4 className="font-semibold text-slate-700">주간 수업시간</h4>
             <p className="text-2xl font-bold text-green-600">
@@ -225,7 +225,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ timeTable, onRefre
 
           <Card className="p-4 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-purple-100 rounded-full flex items-center justify-center">
-              <IconMap />
+              <IconMap color="gray" />
             </div>
             <h4 className="font-semibold text-slate-700">수업 요일</h4>
             <p className="text-2xl font-bold text-purple-600">

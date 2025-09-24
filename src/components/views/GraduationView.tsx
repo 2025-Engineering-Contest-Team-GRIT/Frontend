@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { usePlans } from "@/hooks/useData";
+import type { TrackProgress, Certification } from "@/types";
+import { AuthInfo, plan } from "@/types";
 import type { GraduationInfo } from "@/types";
 import {
   Card,
@@ -15,16 +18,89 @@ import {
 import { ProgressBar } from "../ProgressBar";
 import { Button } from "../Button";
 import { Toast } from "../Toast";
+import { useSimulationStore } from "@/store";
+// 시뮬레이션 추가 모달 컴포넌트 (간단 목업)
+const AddPlanModal: React.FC<{
+  open: boolean;
+  onClose: () => void;
+  onAdd: (name: string) => void;
+}> = ({ open, onClose, onAdd }) => {
+  const [name, setName] = useState("");
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs flex flex-col gap-4">
+        <h4 className="font-bold text-slate-800 text-base">새 시뮬레이션 추가</h4>
+        <input
+          className="border border-slate-200 text-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+          placeholder="시뮬레이션 이름"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <div className="flex gap-2 mt-2">
+          <button
+            className="flex-1 px-3 py-2 rounded bg-amber-500 text-white font-semibold text-sm hover:bg-amber-600"
+            onClick={() => {
+              if (name.trim()) {
+                onAdd(name);
+                setName("");
+              }
+            }}
+          >
+            추가
+          </button>
+          <button
+            className="flex-1 px-3 py-2 rounded bg-slate-100 text-slate-600 font-semibold text-sm hover:bg-slate-200"
+            onClick={onClose}
+          >
+            취소
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-interface GraduationViewProps {
+export type GraduationViewProps = {
   graduationInfo: GraduationInfo;
   onCertificationChange?: (type: string, isCompleted: boolean) => Promise<boolean>;
-}
+  authInfo?: AuthInfo | null;
+};
 
 export const GraduationView: React.FC<GraduationViewProps> = ({
   graduationInfo,
   onCertificationChange,
+  authInfo,
 }) => {
+  // 시뮬레이션 추가 모달 상태 및 목업 데이터
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  // 시뮬레이션(플랜) 데이터 불러오기
+  const {
+    data: plans,
+    isLoading: loadingPlans,
+    refetch: refetchPlans,
+  } = usePlans(authInfo ?? null);
+  // 실제 plans가 없을 때도 목업 1개는 항상 보이게
+  const mockPlan: plan = {
+    plan_id: 0,
+    plan_name: "2025년 2학기 시뮬레이션",
+    created_at: new Date().toISOString(),
+  };
+  // plans가 없으면 목업 1개, 있으면 plans만
+  const displayPlans = plans && plans.length > 0 ? plans : [mockPlan];
+  const [planActionLoading, setPlanActionLoading] = useState(false);
+  // plan 카드 액션 핸들러(아직 미구현)
+  const handleViewPlan = (plan: plan) => {
+    // TODO: 시뮬레이션 상세 보기 로직
+  };
+  const handleDeletePlan = async (plan: plan) => {
+    // TODO: 시뮬레이션 삭제 로직
+  };
+  const handleRefreshPlans = async () => {
+    setPlanActionLoading(true);
+    await refetchPlans();
+    setPlanActionLoading(false);
+  };
   // 인증 요건 설명 매핑 (예시)
   const certificationDescriptions: Record<
     string,
@@ -57,22 +133,104 @@ export const GraduationView: React.FC<GraduationViewProps> = ({
     type?: "success" | "error" | "info";
   } | null>(null);
 
-  // 충족 여부 계산
-  const allTracksMet = graduationInfo.track_progress_list.every(
-    (track) =>
+  // 시뮬레이션 스토어에서 데이터 가져오기
+  const {
+    roadmapCourses,
+    changedTracks,
+    userTracks,
+    graduationInfo: storeGraduationInfo,
+  } = useSimulationStore();
+
+  // 시뮬레이션 데이터가 적용된 졸업 진도 계산
+  const updatedGraduationInfo = useMemo(() => {
+    if (!storeGraduationInfo || (!roadmapCourses.length && !Object.keys(changedTracks).length)) {
+      return graduationInfo;
+    }
+
+    // 기본 졸업 정보를 복사
+    const updated = JSON.parse(JSON.stringify(graduationInfo)) as GraduationInfo;
+
+    // 시뮬레이션으로 추가된 과목들의 학점 계산
+    let totalAdditionalCredits = 0;
+    const trackCreditMap: Record<
+      number,
+      { mandatory: number; elective: number; foundation: number }
+    > = {};
+
+    // 추가된 과목들 처리
+    roadmapCourses.forEach((course) => {
+      const trackId = course.track_id;
+      if (trackId == null) return; // track_id가 없는 경우 스킵
+
+      totalAdditionalCredits += course.credits;
+
+      if (!trackCreditMap[trackId]) {
+        trackCreditMap[trackId] = { mandatory: 0, elective: 0, foundation: 0 };
+      }
+
+      switch (course.course_type) {
+        case "전공필수":
+          trackCreditMap[trackId].mandatory += course.credits;
+          break;
+        case "전공선택":
+          trackCreditMap[trackId].elective += course.credits;
+          break;
+        case "전공기초":
+          trackCreditMap[trackId].foundation += course.credits;
+          break;
+      }
+    });
+
+    // 총 학점 업데이트
+    updated.total_completed_credits += totalAdditionalCredits;
+
+    // 트랙별 진도 업데이트
+    updated.track_progress_list = updated.track_progress_list.map((track) => {
+      const trackId = userTracks.find((t) => t.track_name === track.track_name)?.track_id;
+      if (trackId && trackCreditMap[trackId]) {
+        const additionalCredits = trackCreditMap[trackId];
+        return {
+          ...track,
+          major_required: {
+            ...track.major_required,
+            completed_credits: track.major_required.completed_credits + additionalCredits.mandatory,
+          },
+          major_basic: {
+            ...track.major_basic,
+            completed_credits: track.major_basic.completed_credits + additionalCredits.foundation,
+          },
+          major_subtotal: {
+            ...track.major_subtotal,
+            completed_credits:
+              track.major_subtotal.completed_credits +
+              additionalCredits.mandatory +
+              additionalCredits.elective +
+              additionalCredits.foundation,
+          },
+        };
+      }
+      return track;
+    });
+
+    return updated;
+  }, [graduationInfo, roadmapCourses, changedTracks, userTracks, storeGraduationInfo]);
+
+  // 충족 여부 계산 (업데이트된 정보 사용)
+  const allTracksMet = updatedGraduationInfo.track_progress_list.every(
+    (track: TrackProgress) =>
       track.major_basic.completed_credits >= track.major_basic.required_credits &&
       track.major_required.completed_credits >= track.major_required.required_credits &&
       track.major_subtotal.completed_credits >= track.major_subtotal.required_credits,
   );
   const totalCreditsMet =
-    graduationInfo.total_completed_credits >= graduationInfo.total_required_credits;
-  const certificationMet = graduationInfo.certifications.some((c) => c.completed);
+    updatedGraduationInfo.total_completed_credits >= updatedGraduationInfo.total_required_credits;
+  const certificationMet = updatedGraduationInfo.certifications.some((c) => c.completed);
   const allMet = allTracksMet && totalCreditsMet && certificationMet;
 
-  // 남은 요건
+  // 남은 요건 (업데이트된 정보 사용)
   const remainingRequirements: string[] = [];
   if (!totalCreditsMet) remainingRequirements.push("총 이수 학점 충족");
-  graduationInfo.track_progress_list.forEach((track) => {
+  updatedGraduationInfo.track_progress_list.forEach((track) => {
     if (track.major_basic.completed_credits < track.major_basic.required_credits)
       remainingRequirements.push(`${track.track_name} 전공기초 학점`);
     if (track.major_required.completed_credits < track.major_required.required_credits)
@@ -140,13 +298,13 @@ export const GraduationView: React.FC<GraduationViewProps> = ({
             <h3 className="font-bold text-slate-700 text-base mb-2">총 이수 학점</h3>
             <div className="text-center">
               <span className="text-2xl font-bold text-sky-600">
-                {graduationInfo.total_completed_credits}
+                {updatedGraduationInfo.total_completed_credits}
               </span>
               <span className="text-base text-slate-500 font-medium"> / 130 학점</span>
             </div>
             <div className="mt-2">
               <ProgressBar
-                value={graduationInfo.total_completed_credits}
+                value={updatedGraduationInfo.total_completed_credits}
                 max={130}
                 className="h-2 bg-sky-200"
               />
@@ -223,18 +381,18 @@ export const GraduationView: React.FC<GraduationViewProps> = ({
             <Card className="p-4">
               <h3 className="font-bold text-slate-700 text-base mb-2">졸업 인증 요건 (택 1)</h3>
               <div className="space-y-2">
-                {graduationInfo.certifications.map((cert) => (
+                {updatedGraduationInfo.certifications.map((cert: Certification) => (
                   <Button
                     key={cert.certification_name}
                     onClick={() => setSelectedCertification(cert.certification_name)}
                     variant={cert.completed ? "primary" : "outline"}
-                    className={`w-full text-left flex items-center gap-2 p-2 rounded-lg border duration-200 text-xs ${cert.completed ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"}`}
+                    className={`w-full text-left flex items-center gap-2 p-2 rounded-lg border duration-200 text-sm ${cert.completed ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"}`}
                   >
                     <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg text-sky-600 bg-sky-100">
                       {certificationDescriptions[cert.certification_name]?.icon ?? <IconTrophy />}
                     </div>
                     <div className="flex-grow">
-                      <p className="font-bold text-slate-800 text-xs">
+                      <p className="font-bold text-slate-800 text-sm">
                         {certificationDescriptions[cert.certification_name]?.label ??
                           cert.certification_name}
                       </p>
@@ -262,7 +420,7 @@ export const GraduationView: React.FC<GraduationViewProps> = ({
         {/* Column 2: 트랙별 진행 */}
         <div className="space-y-4 h-full">
           <Card className="p-4 flex flex-col gap-8">
-            {graduationInfo.track_progress_list.map((track) => (
+            {updatedGraduationInfo.track_progress_list.map((track: TrackProgress) => (
               <div key={track.track_name}>
                 <h3 className="font-bold text-slate-700 text-base mb-2">{track.track_name}</h3>
                 <div className="space-y-2 text-slate-500">
@@ -345,6 +503,155 @@ export const GraduationView: React.FC<GraduationViewProps> = ({
             ))}
           </Card>
         </div>
+      </div>
+      {/* 시뮬레이션(플랜) 목록 - 하단에 길게 배치 */}
+      <div className="mt-8 relative hidden">
+        <Card className="p-4 flex flex-col gap-8">
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span className="w-6 h-6 flex items-center justify-center bg-amber-100 text-amber-600 rounded-lg">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 20l9-5-9-5-9 5 9 5z" />
+                  <path d="M12 12V4m0 0L3 9m9-5l9 5" />
+                </svg>
+              </span>
+              졸업 시뮬레이션
+            </h3>
+            <button
+              className="ml-auto px-3 py-1 text-xs rounded bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 font-semibold flex items-center gap-1 disabled:opacity-60"
+              onClick={handleRefreshPlans}
+              disabled={planActionLoading}
+              title="새로고침"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M4 4v5h.582M20 20v-5h-.581M5.21 17.293A9 9 0 1 0 12 3v1" />
+              </svg>
+              새로고침
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {loadingPlans ? (
+              <div className="col-span-full flex justify-center items-center py-8">
+                <svg
+                  className="animate-spin h-6 w-6 text-blue-400 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+                <span className="text-slate-500 text-sm">시뮬레이션을 불러오는 중...</span>
+              </div>
+            ) : (
+              displayPlans.map((plan: plan) => (
+                <div
+                  key={plan.plan_id}
+                  className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col gap-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-500">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 20l9-5-9-5-9 5 9 5z" />
+                        <path d="M12 12V4m0 0L3 9m9-5l9 5" />
+                      </svg>
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-slate-800 truncate">{plan.plan_name}</div>
+                      <div className="text-xs text-slate-400">
+                        생성일: {new Date(plan.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="px-3 py-1 text-xs rounded bg-sky-100 hover:bg-sky-200 text-sky-700 border border-sky-200 font-semibold flex items-center gap-1"
+                      onClick={() => handleViewPlan(plan)}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      보기
+                    </button>
+                    <button
+                      className="px-3 py-1 text-xs rounded bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-200 font-semibold flex items-center gap-1"
+                      onClick={() => handleDeletePlan(plan)}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {/* 플로팅 추가 버튼 */}
+          <button
+            className="fixed bottom-10 right-10 z-50 flex items-center gap-2 px-5 py-3 rounded-full shadow-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-base transition-all duration-200"
+            style={{ boxShadow: "0 4px 24px 0 rgba(251, 191, 36, 0.15)" }}
+            onClick={() => setAddModalOpen(true)}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 4v16m8-8H4" />
+            </svg>
+            시뮬레이션 추가
+          </button>
+        </Card>
+        {/* 추가 모달 */}
+        <AddPlanModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onAdd={() => setAddModalOpen(false)}
+        />
       </div>
     </div>
   );

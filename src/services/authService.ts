@@ -28,7 +28,7 @@ export async function logoutService(): Promise<void> {
 
 export interface InfoFetchResponse {
   success: boolean;
-  track?: number[];
+  track?: string[];
 }
 
 export async function fetchUserInfo(
@@ -50,7 +50,7 @@ export async function fetchUserInfo(
     throw new Error("사용자 정보를 불러오는데 실패했습니다.");
   }
   const data = await res.json();
-  return { success: data.status == 200, track: data.track_ids };
+  return { success: data.status == 200, track: [data.track1, data.track2] };
 }
 
 export interface RecommendProps {

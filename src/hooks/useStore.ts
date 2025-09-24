@@ -1,6 +1,19 @@
 import { useCallback } from "react";
-import { useAuthStore, useUIStore, useCourseStore, useCompletionStore } from "@/store";
-import type { Course, AuthInfo, CourseListItem } from "@/types";
+import {
+  useAuthStore,
+  useUIStore,
+  useCourseStore,
+  useCompletionStore,
+  useSimulationStore,
+} from "@/store";
+import type {
+  Course,
+  AuthInfo,
+  CourseListItem,
+  extendedShortCourse,
+  shortTrackInfo,
+  GraduationInfo,
+} from "@/types";
 import { deleteRemoveFavoriteCourse, postAddFavoriteCourse } from "@/services/modifyService";
 
 // Auth state management hook
@@ -161,5 +174,59 @@ export const useCompletionState = () => {
       },
       [unsetAsFavorite],
     ),
+  };
+};
+
+// 시뮬레이션 상태 관리 hook
+export const useSimulation = () => {
+  const {
+    availableCourses,
+    userTracks,
+    graduationInfo,
+    roadmapCourses,
+    changedTracks,
+    isModified,
+    setBasicData,
+    addCourseToRoadmap,
+    removeCourseFromRoadmap,
+    changeCourseTrack,
+    resetSimulation,
+    saveSimulation,
+    cancelChanges,
+    setIsModified,
+  } = useSimulationStore();
+
+  return {
+    availableCourses,
+    userTracks,
+    graduationInfo,
+    roadmapCourses,
+    changedTracks,
+    isModified,
+    setBasicData: useCallback(
+      (
+        availableCourses: extendedShortCourse[],
+        userTracks: shortTrackInfo[],
+        graduationInfo: GraduationInfo,
+      ) => setBasicData(availableCourses, userTracks, graduationInfo),
+      [setBasicData],
+    ),
+    addCourseToRoadmap: useCallback(
+      (course: extendedShortCourse, trackId: number, year: number, semester: number) =>
+        addCourseToRoadmap(course, trackId, year, semester),
+      [addCourseToRoadmap],
+    ),
+    removeCourseFromRoadmap: useCallback(
+      (courseCode: string) => removeCourseFromRoadmap(courseCode),
+      [removeCourseFromRoadmap],
+    ),
+    changeCourseTrack: useCallback(
+      (courseCode: string, newTrackId: number) => changeCourseTrack(courseCode, newTrackId),
+      [changeCourseTrack],
+    ),
+    resetSimulation: useCallback(() => resetSimulation(), [resetSimulation]),
+    saveSimulation: useCallback(() => saveSimulation(), [saveSimulation]),
+    cancelChanges: useCallback(() => cancelChanges(), [cancelChanges]),
+    setIsModified: useCallback((modified: boolean) => setIsModified(modified), [setIsModified]),
   };
 };

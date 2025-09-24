@@ -350,17 +350,18 @@ export interface detailedPlan extends plan {
 export interface shortCourse {
   course_code: string;
   course_name: string;
-  credits: number;
+  credit: number;
   open_grade: number;
   open_semester: "FIRST" | "SECOND" | "SUMMER";
 }
 
 export interface extendedShortCourse extends shortCourse {
-  courseType: string;
-  applicableTrackIds: number[];
+  course_type: string;
+  applicable_track_ids: number[];
 }
 
 export interface planBasicInfo {
+  crawling_data: GraduationInfo;
   available_courses: extendedShortCourse[];
   user_tracks: shortTrackInfo[];
 }

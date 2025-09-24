@@ -179,9 +179,9 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
 
   // 코스 클릭 시 Toast 표시 예시
   const handleCourseClickWithToast = (course: Course) => {
-    onCourseClick(course);
-    setToast(`${course.courseName} 상세 정보를 확인하세요.`);
-    setTimeout(() => setToast(null), 1800);
+    // onCourseClick(course);
+    // setToast(`${course.courseName} 상세 정보를 확인하세요.`);
+    // setTimeout(() => setToast(null), 1800);
   };
 
   // Render prerequisite connections (로드맵에 존재하는 과목만 연결)

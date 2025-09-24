@@ -123,7 +123,20 @@ const DataIntegrationStep = ({
       if (result.success) {
         setPreferences((prev) => ({
           ...prev,
-          careerPaths: result.track ? result.track.map((id) => CareerPathList[id] ?? id) : [],
+          careerPaths: result.track
+            ? result.track
+                .map((id) => {
+                  console.log(
+                    id,
+                    CareerPathList,
+                    id.replaceAll("트랙", ""),
+                    id.replaceAll("트랙", "") as keyof typeof CareerPath,
+                  );
+                  const key = id.replaceAll("트랙", "") as keyof typeof CareerPath;
+                  return CareerPath[key];
+                })
+                .filter((v) => v !== undefined)
+            : [],
         }));
         onNext();
       } else {
@@ -595,7 +608,7 @@ const AnalysisStep = ({
     "추천 과목을 선별하고 있습니다...",
   ];
   useEffect(() => {
-    if (analysisLoading) return;
+    if (!analysisLoading) return;
     let interval: NodeJS.Timeout | null = null;
 
     setDone(false);
@@ -645,7 +658,6 @@ const AnalysisStep = ({
       if (interval) clearInterval(interval);
       clearTimeout(t1);
     };
-     
   }, [analysisLoading]);
 
   useEffect(() => {
@@ -667,7 +679,6 @@ const AnalysisStep = ({
     return () => {
       if (fastInterval) clearInterval(fastInterval);
     };
-     
   }, [analysisLoading, progress, currentMessage, done, onNext]);
 
   return (

@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AuthInfo, StudentStatus } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { AuthInfo } from "@/types";
 
 // Student data hooks
 export const useDashboard = (status: AuthInfo | null) => {
@@ -59,9 +59,12 @@ export const useCourses = (status: AuthInfo | null) => {
         },
       });
       if (!res.ok) throw new Error("과목 정보를 불러올 수 없습니다");
-      return res.json();
+      const result = await res.json();
+      console.log("useCourses API 응답:", result);
+      return result;
     },
-    staleTime: 30 * 60 * 1000, // 10 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    enabled: !!status, // status가 있을 때만 쿼리 실행
   });
 };
 
@@ -87,19 +90,6 @@ export const useGraduation = (status: AuthInfo | null) => {
   });
 };
 
-// Settings data hooks
-export const useSettings = (status: StudentStatus = StudentStatus.SOPHOMORE) => {
-  return useQuery({
-    queryKey: ["settings", status],
-    queryFn: async () => {
-      const res = await fetch(`/api/settings?status=${status}`);
-      if (!res.ok) throw new Error("설정 정보를 불러올 수 없습니다");
-      return res.json();
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};
-
 // Roadmap data hooks
 export const useRoadmap = (status: AuthInfo | null) => {
   return useQuery({
@@ -118,40 +108,6 @@ export const useRoadmap = (status: AuthInfo | null) => {
       return result.data;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-};
-
-// Statistics data hooks
-export const useStatistics = (status: StudentStatus = StudentStatus.SOPHOMORE) => {
-  return useQuery({
-    queryKey: ["statistics", status],
-    queryFn: async () => {
-      const res = await fetch(`/api/statistics?status=${status}`);
-      if (!res.ok) throw new Error("통계 정보를 불러올 수 없습니다");
-      return res.json();
-    },
-    staleTime: 15 * 60 * 1000, // 15 minutes
-  });
-};
-
-// Settings update mutation
-export const useUpdateSettings = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (settings: any) => {
-      const res = await fetch("/api/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-      if (!res.ok) throw new Error("설정 업데이트에 실패했습니다");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-      queryClient.invalidateQueries({ queryKey: ["student"] });
-    },
   });
 };
 
