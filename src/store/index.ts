@@ -1,16 +1,19 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type { StudentWithMetrics, Course, AllCourses, Student } from "@/types";
-import { CourseStatus } from "@/types";
+//import type { StudentWithMetrics, Course, AllCourses, Student } from "@/types"; --- IGNORE ---
+
+import { CourseStatus, AuthInfo } from "@/types";
+import type { Course, CourseListItem } from "@/types";
 
 // 서버 데이터 상태 제거, 클라이언트 인증 여부만 유지
 
 interface AuthState {
   isAuthenticated: boolean;
-  user: Student | null;
-  login: () => void;
+  authInfo: AuthInfo | null;
+  isLoaded: boolean;
+  setAsLoaded: () => void;
+  login: (data: AuthInfo) => void;
   logout: () => void;
-  setUser: (student: Student | null) => void;
 }
 
 interface UIState {
@@ -31,104 +34,27 @@ interface CourseState {
   setAiRecommendation: (recommendation: string) => void;
 }
 
-// Helper function to calculate derived student data
-const calculateStudentMetrics = (student: Student | null): StudentWithMetrics | null => {
-  if (!student) return null;
-
-  const gradeToPoint: Record<string, number> = {
-    "A+": 4.5,
-    A: 4.0,
-    A0: 4.0,
-    "B+": 3.5,
-    B: 3.0,
-    B0: 3.0,
-    "C+": 2.5,
-    C: 2.0,
-    C0: 2.0,
-    "D+": 1.5,
-    D: 1.0,
-    D0: 1.0,
-    F: 0.0,
-  };
-
-  const completedCourses = student.roadmap.semesters
-    .flatMap((s) => s.courses)
-    .filter((c) => c.status === CourseStatus.COMPLETED);
-
-  const completedCredits = completedCourses.reduce((acc, c) => acc + c.credits, 0);
-
-  let totalPoints = 0;
-  let totalCreditedForGpa = 0;
-
-  completedCourses
-    .filter((c) => c.grade && gradeToPoint[c.grade] !== undefined)
-    .forEach((course) => {
-      if (course.grade) {
-        totalPoints += course.credits * (gradeToPoint[course.grade] ?? 0);
-        totalCreditedForGpa += course.credits;
-      }
-    });
-
-  const gpa =
-    totalCreditedForGpa > 0 ? parseFloat((totalPoints / totalCreditedForGpa).toFixed(2)) : 0;
-
-  const enrolledSemesters = student.roadmap.semesters.filter((s) =>
-    s.courses.some((c) => c.status === CourseStatus.ENROLLED),
-  );
-
-  let currentYear: number | null = null;
-  let currentSemester: number | null = null;
-
-  if (enrolledSemesters.length > 0) {
-    const latestEnrolled = enrolledSemesters.reduce((latest, current) => {
-      if (current.year > latest.year) return current;
-      if (current.year === latest.year && current.semester > latest.semester) return current;
-      return latest;
-    }, enrolledSemesters[0]);
-    currentYear = latestEnrolled.year;
-    currentSemester = latestEnrolled.semester;
-  } else {
-    const completedSemesters = student.roadmap.semesters.filter((s) =>
-      s.courses.some((c) => c.status === CourseStatus.COMPLETED),
-    );
-    if (completedSemesters.length > 0) {
-      const latestCompleted = completedSemesters.reduce((latest, current) => {
-        if (current.year > latest.year) return current;
-        if (current.year === latest.year && current.semester > latest.semester) return current;
-        return latest;
-      }, completedSemesters[0]);
-
-      if (latestCompleted.semester === 2) {
-        currentYear = latestCompleted.year + 1;
-        currentSemester = 1;
-      } else {
-        currentYear = latestCompleted.year;
-        currentSemester = latestCompleted.semester + 1;
-      }
-    } else if (student.roadmap.semesters.length > 0) {
-      const firstSemester = [...student.roadmap.semesters].sort(
-        (a, b) => a.year - b.year || a.semester - b.semester,
-      )[0];
-      currentYear = firstSemester.year;
-      currentSemester = firstSemester.semester;
-    }
-  }
-
-  return { ...student, completedCredits, gpa, currentYear, currentSemester };
-};
+interface CompletionState {
+  completionInfo: CourseListItem[] | null;
+  setCompletionInfo: (info: CourseListItem[]) => void;
+  setAsFavorite: (courseId: number) => void;
+  unsetAsFavorite: (courseId: number) => void;
+}
 
 export const useAuthStore = create<AuthState>()(
-  devtools(
-    (set) => ({
-      isAuthenticated: false,
-      user: null,
-      login: () => set({ isAuthenticated: true }),
-      logout: () => set({ isAuthenticated: false, user: null }),
-      setUser: (student: Student | null) => set({ user: student }),
-    }),
-    {
-      name: "auth-store",
-    },
+  persist(
+    devtools(
+      (set) => ({
+        isAuthenticated: false,
+        isLoaded: false,
+        authInfo: null,
+        setAsLoaded: () => set({ isLoaded: true }),
+        login: (data: AuthInfo) => set({ isAuthenticated: true, authInfo: data }),
+        logout: () => set({ isAuthenticated: false, authInfo: null }),
+      }),
+      { name: "auth-store" },
+    ),
+    { name: "auth-store" },
   ),
 );
 
@@ -146,6 +72,34 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: "ui-store",
+    },
+  ),
+);
+
+export const useCompletionStore = create<CompletionState>()(
+  devtools(
+    (set) => ({
+      completionInfo: null,
+      setCompletionInfo: (info: CourseListItem[]) => set({ completionInfo: info }),
+      setAsFavorite: (courseId: number) =>
+        set((state) => {
+          if (!state.completionInfo) return state;
+          const updatedCourses = state.completionInfo.map((courseItem: CourseListItem) =>
+            courseItem.course.id === courseId ? { ...courseItem, is_favorite: true } : courseItem,
+          );
+          return { completionInfo: updatedCourses };
+        }),
+      unsetAsFavorite: (courseId: number) =>
+        set((state) => {
+          if (!state.completionInfo) return state;
+          const updatedCourses = state.completionInfo.map((courseItem: CourseListItem) =>
+            courseItem.course.id === courseId ? { ...courseItem, is_favorite: false } : courseItem,
+          );
+          return { completionInfo: updatedCourses };
+        }),
+    }),
+    {
+      name: "completion-store",
     },
   ),
 );

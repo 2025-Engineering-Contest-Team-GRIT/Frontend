@@ -1,16 +1,25 @@
 import { useCallback } from "react";
-import { useAuthStore, useUIStore, useCourseStore } from "@/store";
-import type { Course, Student } from "@/types";
+import { useAuthStore, useUIStore, useCourseStore, useCompletionStore } from "@/store";
+import type { Course, AuthInfo, CourseListItem } from "@/types";
+import { deleteRemoveFavoriteCourse, postAddFavoriteCourse } from "@/services/modifyService";
 
 // Auth state management hook
 export const useAuth = () => {
-  const { isAuthenticated, login, logout, user, setUser } = useAuthStore();
+  const { isAuthenticated, setAsLoaded, isLoaded, login, logout, authInfo } = useAuthStore();
 
   return {
     isAuthenticated,
-    user,
-    setUser: useCallback((student: Student | null) => setUser(student), [setUser]),
-    login: useCallback(() => login(), [login]),
+    authInfo,
+    isLoaded,
+    setAsLoaded: useCallback(() => {
+      setAsLoaded();
+    }, [setAsLoaded]),
+    login: useCallback(
+      (data: AuthInfo) => {
+        login(data);
+      },
+      [login],
+    ),
     logout: useCallback(() => logout(), [logout]),
   };
 };
@@ -95,7 +104,7 @@ export const useCourseSelection = () => {
     openCourseModal: useCallback(
       (course: Course) => {
         setSelectedCourseForModal(course);
-        setSelectedCourseId(course.id);
+        setSelectedCourseId(course.courseId.toString());
       },
       [setSelectedCourseForModal, setSelectedCourseId],
     ),
@@ -123,6 +132,34 @@ export const useLoadingState = () => {
         }
       },
       [setIsAiLoading],
+    ),
+  };
+};
+
+export const useCompletionState = () => {
+  const { completionInfo, setCompletionInfo, setAsFavorite, unsetAsFavorite } =
+    useCompletionStore();
+
+  const { authInfo } = useAuthStore();
+  return {
+    completionInfo,
+    setCompletionInfo: useCallback(
+      (info: CourseListItem[]) => setCompletionInfo(info),
+      [setCompletionInfo],
+    ),
+    setAsFavorite: useCallback(
+      (courseId: number) => {
+        setAsFavorite(courseId);
+        postAddFavoriteCourse(authInfo, courseId);
+      },
+      [setAsFavorite],
+    ),
+    unsetAsFavorite: useCallback(
+      (courseId: number) => {
+        unsetAsFavorite(courseId);
+        deleteRemoveFavoriteCourse(authInfo, courseId);
+      },
+      [unsetAsFavorite],
     ),
   };
 };

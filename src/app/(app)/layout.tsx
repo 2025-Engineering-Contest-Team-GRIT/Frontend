@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { SSRHeader } from "@/components/server/Layout";
 import { CSRNavigation } from "@/components/client/Navigation";
 import "../globals.css";
 import { HeaderClientWrapper } from "@/components/client/wrapper/HeaderClientWrapper";

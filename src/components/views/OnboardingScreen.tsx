@@ -1,15 +1,38 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Toast } from '../Toast';
-import { fadeIn } from '../animations';
-import { Button } from '../Button';
-import { ProgressBar } from '../ProgressBar';
-import type { Student, StudyStyle, ConsentChoices, Track } from '@/types';
-import { CareerPath } from '@/types';
-import { Card, IconLock, IconTarget, IconSparkles, IconMap, IconCheck, IconUser, IconBook, IconCalendar, IconCpu, IconWorld, IconBarChart2, IconCube, IconBriefcase, IconMortarBoard, IconRocket, IconTrophy, IconChevronDown, IconChevronRight, IconX, IconCompass } from '../common';
-import { ConfirmationModal } from '../ConfirmationModal';
-import { PrivacyPolicyModal } from '../PrivacyPolicyModal';
+import React, { useState, useEffect } from "react";
+import { Toast } from "../Toast";
+import { fadeIn } from "../animations";
+import { Button } from "../Button";
+import { ProgressBar } from "../ProgressBar";
+import type { StudyStyle, ConsentChoices, Track, AuthInfo } from "@/types";
+import { CareerPath, CareerPathList } from "@/types";
+import {
+  Card,
+  IconLock,
+  IconTarget,
+  IconSparkles,
+  IconMap,
+  IconCheck,
+  IconUser,
+  IconBook,
+  IconCalendar,
+  IconCpu,
+  IconWorld,
+  IconBarChart2,
+  IconCube,
+  IconBriefcase,
+  IconMortarBoard,
+  IconRocket,
+  IconTrophy,
+  IconChevronDown,
+  IconChevronRight,
+  IconX,
+  IconCompass,
+} from "../common";
+import { ConfirmationModal } from "../ConfirmationModal";
+import { PrivacyPolicyModal } from "../PrivacyPolicyModal";
+import { InfoFetchResponse, RecommendProps } from "@/services/authService";
 
 interface UserPreferences {
   careerPaths: CareerPath[];
@@ -20,17 +43,18 @@ interface UserPreferences {
 }
 
 type OnboardingScreenProps = {
-  student: Student;
-  onComplete: (updatedStudent: Student) => void;
-  onExit: () => void;
+  authInfo: AuthInfo;
+  onInfoFetch: () => Promise<InfoFetchResponse>;
+  onRecommendRoadmaps: (recommandProps: RecommendProps) => Promise<boolean>;
+  onComplete: () => void;
 };
 
 const ProgressIndicator = ({ currentStep }: { currentStep: number }) => {
   const steps = [
-  { name: '데이터 연동', icon: <IconLock /> },
-  { name: '학습 설계', icon: <IconTarget /> },
-  { name: 'AI 분석', icon: <IconSparkles /> },
-  { name: '로드맵 확인', icon: <IconMap /> },
+    { name: "데이터 연동", icon: <IconLock /> },
+    { name: "학습 설계", icon: <IconTarget /> },
+    { name: "AI 분석", icon: <IconSparkles /> },
+    { name: "로드맵 확인", icon: <IconMap /> },
   ];
   return (
     <div className="flex items-center w-full max-w-2xl mx-auto mb-8 px-4">
@@ -40,17 +64,21 @@ const ProgressIndicator = ({ currentStep }: { currentStep: number }) => {
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                 currentStep > index
-                  ? 'bg-blue-600 border-blue-600 text-white'
+                  ? "bg-blue-600 border-blue-600 text-white"
                   : currentStep === index
-                  ? 'bg-white border-blue-600 text-blue-600 scale-110 shadow-lg'
-                  : 'bg-slate-100 border-slate-300 text-slate-400'
+                    ? "bg-white border-blue-600 text-blue-600 scale-110 shadow-lg"
+                    : "bg-slate-100 border-slate-300 text-slate-400"
               }`}
             >
-              {currentStep > index ? <IconCheck /> : React.cloneElement(step.icon, { className: 'w-6 h-6' })}
+              {currentStep > index ? (
+                <IconCheck />
+              ) : (
+                React.cloneElement(step.icon, { className: "w-6 h-6" })
+              )}
             </div>
             <p
               className={`mt-2 text-xs font-semibold transition-colors duration-300 ${
-                currentStep >= index ? 'text-slate-700' : 'text-slate-400'
+                currentStep >= index ? "text-slate-700" : "text-slate-400"
               }`}
             >
               {step.name}
@@ -59,7 +87,7 @@ const ProgressIndicator = ({ currentStep }: { currentStep: number }) => {
           {index < steps.length - 1 && (
             <div
               className={`flex-1 h-1 mx-[-1rem] transition-all duration-500 ${
-                currentStep > index ? 'bg-blue-500' : 'bg-slate-200'
+                currentStep > index ? "bg-blue-500" : "bg-slate-200"
               }`}
             ></div>
           )}
@@ -73,98 +101,142 @@ const DataIntegrationStep = ({
   consentChoices,
   setConsentChoices,
   onNext,
+  setPreferences,
   onOpenPolicy,
+  onInfoFetch,
 }: {
   consentChoices: ConsentChoices;
   setConsentChoices: (choices: ConsentChoices) => void;
   onNext: () => void;
+  setPreferences: (fn: (prev: UserPreferences) => UserPreferences) => void;
   onOpenPolicy: () => void;
+  onInfoFetch: () => Promise<InfoFetchResponse>;
 }) => {
-  const integrationOptions = [
-    {
-      id: 'profile' as keyof ConsentChoices,
-      label: '기본 프로필 정보',
-      description: '이름, 학번, 학과, 학년 정보',
-  icon: <IconUser />,
-      required: true,
-    },
-    {
-      id: 'courses' as keyof ConsentChoices,
-      label: '수강 과목 및 성적 정보',
-      description: '이수한 과목, 성적, 학점 정보',
-  icon: <IconBook />,
-      required: false,
-    },
-    {
-      id: 'timetable' as keyof ConsentChoices,
-      label: '시간표 정보',
-      description: '현재 학기 시간표 및 수강 일정',
-  icon: <IconCalendar />,
-      required: false,
-    },
-  ];
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [policyChecked, setPolicyChecked] = useState(false);
 
-  const handleToggle = (id: keyof ConsentChoices) => {
-    if (id === 'profile') return; // Required field
-    setConsentChoices({ ...consentChoices, [id]: !consentChoices[id] });
+  const handleFetch = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await onInfoFetch();
+      if (result.success) {
+        setPreferences((prev) => ({
+          ...prev,
+          careerPaths: result.track ? result.track.map((id) => CareerPathList[id] ?? id) : [],
+        }));
+        onNext();
+      } else {
+        setError("데이터 연동에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch (e) {
+      setError("데이터 연동 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Card className="max-w-2xl mx-auto p-8">
-      <div className="text-center mb-6">
-        <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mb-4">
-          <IconLock />
+    <Card className="max-w-2xl min-w-2xl container mx-auto p-8">
+      <div className="text-center mb-8">
+        <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mb-4 shadow-lg">
+          <IconLock className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-800">데이터 연동 안내</h2>
-        <p className="text-slate-500 mt-2 max-w-md mx-auto">
-          &apos;한성 길라잡이&apos;는 종합정보시스템의 정보를 바탕으로 맞춤형 서비스를 제공합니다. 연동할 데이터를 선택해주세요.
+        <h2 className="text-3xl font-extrabold text-slate-800 mb-2">데이터 연동 안내</h2>
+        <p className="text-slate-500 mt-2 mx-auto text-base">
+          <span className="font-semibold text-blue-600">'한성 길라잡이'</span>는 아래 정보를
+          바탕으로 맞춤형 서비스를 제공합니다.
+          <br />
+          아래 정보를 안전하게 연동합니다.
         </p>
       </div>
 
-      <div className="space-y-3 mb-6">
-        {integrationOptions.map((option) => (
+      <div className="grid grid-cols-1 gap-4 mb-8">
+        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 bg-blue-50">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow">
+            <IconUser className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">기본 프로필 정보</p>
+            <p className="text-sm text-slate-500">이름, 학번, 학과, 학년</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 bg-blue-50">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow">
+            <IconBook className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">수강 과목 및 성적 정보</p>
+            <p className="text-sm text-slate-500">이수한 과목, 성적, 학점</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 bg-blue-50">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow">
+            <IconCalendar className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">시간표 정보</p>
+            <p className="text-sm text-slate-500">현재 학기 시간표 및 수강 일정</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <input
+          id="policy-check"
+          type="checkbox"
+          checked={policyChecked}
+          onChange={(e) => setPolicyChecked(e.target.checked)}
+          className="accent-blue-600 w-5 h-5 rounded border-slate-300 focus:ring-2 focus:ring-blue-400"
+        />
+        <label htmlFor="policy-check" className="text-xs text-slate-600 select-none">
           <button
-            key={option.id}
-            onClick={() => handleToggle(option.id)}
-            disabled={option.required}
-            className={`w-full text-left flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-300 ${
-              consentChoices[option.id]
-                ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500'
-                : 'bg-white border-slate-200 hover:border-slate-300'
-            } ${option.required ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer'}`}
+            type="button"
+            onClick={onOpenPolicy}
+            className="text-blue-600 hover:underline font-medium mr-1"
           >
-            <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-lg text-blue-600 bg-blue-100">
-              {option.icon}
-            </div>
-            <div className="flex-grow">
-              <p className="font-bold text-slate-800 flex items-center gap-2">
-                {option.label}
-                {option.required && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">필수</span>}
-              </p>
-              <p className="text-sm text-slate-500">{option.description}</p>
-            </div>
-            <div className="ml-auto">
-              {consentChoices[option.id] ? (
-                <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                  <IconCheck />
-                </div>
-              ) : (
-                <div className="w-6 h-6 rounded-full border-2 border-slate-300"></div>
-              )}
-            </div>
+            개인정보 수집 및 이용 동의서
           </button>
-        ))}
+          를 모두 읽고 동의합니다.
+        </label>
       </div>
 
-      <div className="text-center text-xs text-slate-500 mb-6">
-        <button onClick={onOpenPolicy} className="text-blue-600 hover:underline font-medium">
-          개인정보 수집 및 이용 동의서
-        </button>
-        를 확인해주세요.
-      </div>
+      {error && <div className="text-red-500 text-sm text-center mb-4">{error}</div>}
 
-      <Button onClick={onNext} variant="primary" className="w-full font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30">
-        다음 단계로
+      <Button
+        onClick={handleFetch}
+        variant="primary"
+        className="w-full font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 text-lg"
+        disabled={isLoading || !policyChecked}
+      >
+        {isLoading ? (
+          <>
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <span>데이터 연동 중...</span>
+          </>
+        ) : (
+          "데이터 연동하기"
+        )}
       </Button>
     </Card>
   );
@@ -174,16 +246,28 @@ const PreferencesStep = ({
   preferences,
   setPreferences,
   onNext,
+  onPrev,
+  onRecommendRoadmaps,
+  authInfo,
+  setStep,
+  setAnalysisLoading,
 }: {
   preferences: UserPreferences;
   setPreferences: (fn: (prev: UserPreferences) => UserPreferences) => void;
   onNext: () => void;
+  onPrev: () => void;
+  onRecommendRoadmaps: (recommandProps: RecommendProps) => Promise<boolean>;
+  authInfo: AuthInfo;
+  setStep: (step: number) => void;
+  setAnalysisLoading: (loading: boolean) => void;
 }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-  const [interestInput, setInterestInput] = useState('');
+  const [interestInput, setInterestInput] = useState("");
 
-  const handleUpdate = (key: keyof UserPreferences, value: UserPreferences[keyof UserPreferences]) =>
-    setPreferences((prev) => ({ ...prev, [key]: value }));
+  const handleUpdate = (
+    key: keyof UserPreferences,
+    value: UserPreferences[keyof UserPreferences],
+  ) => setPreferences((prev) => ({ ...prev, [key]: value }));
   const handleUpdateStudyStyle = (key: string, value: unknown) =>
     setPreferences((prev) => ({ ...prev, studyStyle: { ...prev.studyStyle, [key]: value } }));
 
@@ -193,62 +277,90 @@ const PreferencesStep = ({
       : [...preferences.careerPaths, path];
 
     if (newPaths.length <= 2) {
-      handleUpdate('careerPaths', newPaths);
+      handleUpdate("careerPaths", newPaths);
     }
   };
 
   const handleAddInterest = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && interestInput.trim() && !preferences.interests.includes(interestInput.trim())) {
-      handleUpdate('interests', [...preferences.interests, interestInput.trim()]);
-      setInterestInput('');
+    if (
+      e.key === "Enter" &&
+      interestInput.trim() &&
+      !preferences.interests.includes(interestInput.trim())
+    ) {
+      handleUpdate("interests", [...preferences.interests, interestInput.trim()]);
+      setInterestInput("");
     }
   };
 
   const handleRemoveInterest = (interest: string) => {
-    handleUpdate('interests', preferences.interests.filter((i) => i !== interest));
+    handleUpdate(
+      "interests",
+      preferences.interests.filter((i) => i !== interest),
+    );
   };
 
   const handleToggleGoal = (goal: string) => {
     const newGoals = preferences.academicGoals.includes(goal)
       ? preferences.academicGoals.filter((g: string) => g !== goal)
       : [...preferences.academicGoals, goal];
-    handleUpdate('academicGoals', newGoals);
+    handleUpdate("academicGoals", newGoals);
   };
 
   const careerOptions = [
-  { id: CareerPath.MOBILE_SOFTWARE, label: '모바일소프트웨어', icon: <IconCpu />, description: 'iOS/Android 앱 개발' },
-  { id: CareerPath.WEB_ENGINEERING, label: '웹공학', icon: <IconWorld />, description: '웹 서비스 개발' },
-  { id: CareerPath.BIG_DATA, label: '빅데이터', icon: <IconBarChart2 />, description: '데이터 분석 및 처리' },
-  { id: CareerPath.DIGITAL_CONTENTS_VR, label: '디지털콘텐츠·가상현실', icon: <IconCube />, description: 'VR/AR, 게임 개발' },
+    {
+      id: CareerPath.MOBILE_SOFTWARE,
+      label: "모바일소프트웨어",
+      icon: <IconCpu />,
+      description: "iOS/Android 앱 개발",
+    },
+    {
+      id: CareerPath.WEB_ENGINEERING,
+      label: "웹공학",
+      icon: <IconWorld />,
+      description: "웹 서비스 개발",
+    },
+    {
+      id: CareerPath.BIG_DATA,
+      label: "빅데이터",
+      icon: <IconBarChart2 />,
+      description: "데이터 분석 및 처리",
+    },
+    {
+      id: CareerPath.DIGITAL_CONTENTS_VR,
+      label: "디지털콘텐츠·가상현실",
+      icon: <IconCube />,
+      description: "VR/AR, 게임 개발",
+    },
   ];
 
   const studyStyleOptions = {
     creditLoad: [
-      { id: 'light', label: '가벼운 (12-15학점)' },
-      { id: 'normal', label: '보통 (16-18학점)' },
-      { id: 'heavy', label: '많은 (19-21학점)' },
+      { id: "light", label: "가벼운 (12-15학점)" },
+      { id: "normal", label: "보통 (16-18학점)" },
+      { id: "heavy", label: "많은 (19-21학점)" },
     ],
     preference: [
-      { id: 'theory', label: '이론 중심' },
-      { id: 'balanced', label: '균형 잡힌' },
-      { id: 'practice', label: '실습 중심' },
+      { id: "theory", label: "이론 중심" },
+      { id: "balanced", label: "균형 잡힌" },
+      { id: "practice", label: "실습 중심" },
     ],
     ratio: [
-      { id: 'major', label: '전공 위주' },
-      { id: 'balanced', label: '균형 잡힌' },
-      { id: 'general', label: '교양 중심' },
+      { id: "major", label: "전공 위주" },
+      { id: "balanced", label: "균형 잡힌" },
+      { id: "general", label: "교양 중심" },
     ],
   };
 
   const academicGoals = [
-  { id: 'employment', label: '취업 준비', icon: <IconBriefcase /> },
-  { id: 'graduate', label: '대학원 진학', icon: <IconMortarBoard /> },
-  { id: 'startup', label: '창업', icon: <IconRocket /> },
-  { id: 'certification', label: '자격증 취득', icon: <IconTrophy /> },
+    { id: "employment", label: "취업 준비", icon: <IconBriefcase /> },
+    { id: "graduate", label: "대학원 진학", icon: <IconMortarBoard /> },
+    { id: "startup", label: "창업", icon: <IconRocket /> },
+    { id: "certification", label: "자격증 취득", icon: <IconTrophy /> },
   ];
 
+  const isCareerPathValid = preferences.careerPaths.length === 2;
   return (
-    <Card className="max-w-4xl mx-auto p-8">
+    <Card className="max-w-4xl container mx-auto p-8">
       <div className="text-center mb-8">
         <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 mb-4">
           <IconTarget />
@@ -260,7 +372,7 @@ const PreferencesStep = ({
       <div className="space-y-8">
         <div>
           <h3 className="text-lg font-semibold text-slate-700 mb-3">
-            <span className="text-purple-500 font-bold">1.</span> 관심있는 진로를 선택해주세요. (최대 2개)
+            <span className="text-purple-500 font-bold">1.</span> 트랙을 선택해주세요. (최대 2개)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {careerOptions.map((career) => (
@@ -269,10 +381,13 @@ const PreferencesStep = ({
                 onClick={() => handleSelectPath(career.id)}
                 className={`p-4 rounded-xl text-left transition-all border-2 ${
                   preferences.careerPaths.includes(career.id)
-                    ? 'bg-purple-50 border-purple-500 ring-2 ring-purple-500'
-                    : 'bg-white hover:border-purple-300'
-                } ${preferences.careerPaths.length >= 2 && !preferences.careerPaths.includes(career.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={preferences.careerPaths.length >= 2 && !preferences.careerPaths.includes(career.id)}
+                    ? "bg-purple-50 border-purple-500 ring-2 ring-purple-500"
+                    : "bg-white hover:border-purple-300"
+                } ${preferences.careerPaths.length >= 2 && !preferences.careerPaths.includes(career.id) ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={
+                  preferences.careerPaths.length >= 2 &&
+                  !preferences.careerPaths.includes(career.id)
+                }
               >
                 <div className="flex items-center gap-3 font-bold text-slate-700">
                   {career.icon} {career.label}
@@ -291,7 +406,11 @@ const PreferencesStep = ({
             {Object.entries(studyStyleOptions).map(([key, options]) => (
               <div key={key}>
                 <label className="text-sm font-medium text-slate-600">
-                  {key === 'creditLoad' ? '학기 당 수강 학점' : key === 'preference' ? '이론/실습 선호도' : '전공/교양 비중'}
+                  {key === "creditLoad"
+                    ? "학기 당 수강 학점"
+                    : key === "preference"
+                      ? "이론/실습 선호도"
+                      : "전공/교양 비중"}
                 </label>
                 <div className="flex bg-slate-100 p-1 rounded-lg mt-1">
                   {options.map((option: { id: string; label: string }) => (
@@ -299,9 +418,10 @@ const PreferencesStep = ({
                       key={option.id}
                       onClick={() => handleUpdateStudyStyle(key, option.id)}
                       className={`flex-1 text-sm py-2 rounded-md font-semibold transition-all duration-200 ${
-                        (preferences.studyStyle as unknown as Record<string, string>)[key] === option.id
-                          ? 'bg-white text-purple-600 shadow-sm'
-                          : 'text-slate-500 hover:bg-white/50'
+                        (preferences.studyStyle as unknown as Record<string, string>)[key] ===
+                        option.id
+                          ? "bg-white text-purple-600 shadow-sm"
+                          : "text-slate-500 hover:bg-white/50"
                       }`}
                     >
                       {option.label}
@@ -332,7 +452,7 @@ const PreferencesStep = ({
                   id="minor"
                   type="text"
                   value={preferences.minor}
-                  onChange={(e) => handleUpdate('minor', e.target.value)}
+                  onChange={(e) => handleUpdate("minor", e.target.value)}
                   placeholder="e.g., 경영학과, 디자인과"
                   className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none transition"
                 />
@@ -347,8 +467,8 @@ const PreferencesStep = ({
                       onClick={() => handleToggleGoal(goal.id)}
                       className={`p-3 rounded-lg font-semibold text-center transition-all border-2 flex items-center justify-center gap-2 ${
                         preferences.academicGoals.includes(goal.id)
-                          ? 'bg-purple-100 border-purple-500 text-purple-700'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300'
+                          ? "bg-purple-100 border-purple-500 text-purple-700"
+                          : "bg-white border-slate-200 text-slate-600 hover:border-purple-300"
                       }`}
                     >
                       {goal.icon}
@@ -359,7 +479,10 @@ const PreferencesStep = ({
               </div>
 
               <div>
-                <label htmlFor="interests" className="text-sm font-medium text-slate-700 mb-2 block">
+                <label
+                  htmlFor="interests"
+                  className="text-sm font-medium text-slate-700 mb-2 block"
+                >
                   관심 기술/분야
                 </label>
                 <div className="space-y-2">
@@ -395,71 +518,176 @@ const PreferencesStep = ({
         </div>
       </div>
 
-      <div className="mt-8 flex gap-4">
-        <Button variant="secondary" className="w-1/3 font-bold py-3 px-4 rounded-xl">
-          이전
-        </Button>
-        <Button onClick={onNext} variant="primary" className="w-2/3 font-bold py-3 px-4 rounded-xl shadow-lg shadow-purple-500/30">
-          AI 분석 시작
-        </Button>
+      <div className="mt-8 flex flex-col gap-2">
+        <div className="flex gap-4">
+          <Button
+            variant="secondary"
+            className="w-1/3 font-bold py-3 px-4 rounded-xl"
+            onClick={onPrev}
+          >
+            이전
+          </Button>
+          <Button
+            onClick={async () => {
+              const recommandProps = {
+                student_id: authInfo.userId,
+                track_ids:
+                  preferences.careerPaths.length > 0
+                    ? preferences.careerPaths.map(
+                        (path) => careerOptions.findIndex((option) => option.id === path) + 1,
+                      )
+                    : [0],
+                learning_style: {
+                  credits_per_semester:
+                    studyStyleOptions.creditLoad.find(
+                      (opt) => opt.id === preferences.studyStyle.creditLoad,
+                    )?.label || "보통 (16-18학점)",
+                  style_preference:
+                    studyStyleOptions.preference.find(
+                      (opt) => opt.id === preferences.studyStyle.preference,
+                    )?.label || "균형 잡힌",
+                  ratio_preference:
+                    studyStyleOptions.ratio.find((opt) => opt.id === preferences.studyStyle.ratio)
+                      ?.label || "균형 잡힌",
+                },
+                advanced_settings: {
+                  tech_stack: preferences.interests.join(", ") || "",
+                },
+              };
+              setAnalysisLoading(true);
+              setStep(3);
+              const result = await onRecommendRoadmaps(recommandProps);
+              if (!result) {
+                setStep(2);
+              }
+              setAnalysisLoading(false);
+            }}
+            variant="primary"
+            className="w-2/3 font-bold py-3 px-4 rounded-xl shadow-lg shadow-purple-500/30"
+            disabled={!isCareerPathValid}
+          >
+            AI 분석 시작
+          </Button>
+        </div>
+        {!isCareerPathValid && (
+          <div className="text-red-500 text-sm text-center mt-2">
+            트랙을 2개 모두 선택해야 AI 분석을 시작할 수 있습니다.
+          </div>
+        )}
       </div>
     </Card>
   );
 };
 
-const AnalysisStep = ({ onNext }: { onNext: () => void }) => {
+const AnalysisStep = ({
+  onNext,
+  analysisLoading,
+}: {
+  onNext: () => void;
+  analysisLoading: boolean;
+}) => {
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(0);
+  const [done, setDone] = useState(false);
 
   const messages = [
-    '종합정보시스템에서 데이터를 가져오는 중...',
-    '수강 이력을 분석하고 있습니다...',
-    'AI가 맞춤형 로드맵을 생성하고 있습니다...',
-    '추천 과목을 선별하고 있습니다...',
-    '최적의 학습 경로를 계산하고 있습니다...',
+    "수강 이력을 분석하고 있습니다...",
+    "AI가 맞춤형 로드맵을 생성하고 있습니다...",
+    "추천 과목을 선별하고 있습니다...",
   ];
+  useEffect(() => {
+    if (analysisLoading) return;
+    let interval: NodeJS.Timeout | null = null;
+
+    setDone(false);
+    setProgress(0);
+    setCurrentMessage(0);
+
+    // Step 1: 0~33%, Step 2: 34~66%, Step 3: 67~70% (wait for analysisLoading)
+    let stage = 0;
+
+    const advanceStage = () => {
+      stage += 1;
+      setCurrentMessage(stage);
+    };
+
+    const runProgress = () => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (stage === 0 && prev < 33) {
+            return prev + 4;
+          }
+          if (stage === 1 && prev < 66) {
+            return prev + 4;
+          }
+          if (stage === 2 && prev < 70) {
+            return prev + 3;
+          }
+          return prev;
+        });
+      }, 100);
+    };
+
+    // Stage 1: 0~33%
+    runProgress();
+    const t1 = setTimeout(() => {
+      advanceStage(); // message 1 -> 2
+      runProgress();
+      const t2 = setTimeout(() => {
+        advanceStage(); // message 2 -> 3
+        runProgress();
+      }, 2000);
+      // Cleanup t2 on unmount
+      return () => clearTimeout(t2);
+    }, 2000);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      clearTimeout(t1);
+    };
+    // eslint-disable-next-line
+  }, [analysisLoading]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(onNext, 1000);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 150);
-
-    return () => clearInterval(interval);
-  }, [onNext]);
-
-  useEffect(() => {
-    const messageInterval = setInterval(() => {
-      setCurrentMessage((prev) => (prev + 1) % messages.length);
-    }, 3000);
-
-    return () => clearInterval(messageInterval);
-  }, []);
+    let fastInterval: NodeJS.Timeout | null = null;
+    // When analysisLoading === false, quickly fill to 100% and go next
+    if (!analysisLoading && progress >= 70 && currentMessage === 2 && !done) {
+      fastInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            if (fastInterval) clearInterval(fastInterval);
+            setDone(true);
+            setTimeout(onNext, 1000);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 50);
+    }
+    return () => {
+      if (fastInterval) clearInterval(fastInterval);
+    };
+    // eslint-disable-next-line
+  }, [analysisLoading, progress, currentMessage, done, onNext]);
 
   return (
-    <Card className="max-w-2xl mx-auto p-8 text-center">
+    <Card className="max-w-2xl container mx-auto p-8 text-center">
       <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-100 to-blue-100 text-purple-600 mb-6 animate-pulse">
-  <IconSparkles />
+        <IconSparkles />
       </div>
-
       <h2 className="text-2xl font-bold text-slate-800 mb-4">AI 분석 중...</h2>
       <p className="text-slate-500 mb-8">{messages[currentMessage]}</p>
-
-  <ProgressBar value={progress} max={100} className="mb-4" showLabel />
+      <ProgressBar value={progress} max={100} className="mb-4" showLabel />
+      {done && <div className="text-emerald-600 font-bold mt-4">AI 분석이 완료되었습니다!</div>}
     </Card>
   );
 };
 
 const CompletionStep = ({ onFinish, onBack }: { onFinish: () => void; onBack: () => void }) => (
-  <Card className="max-w-2xl mx-auto p-8 text-center">
+  <Card className="max-w-2xl mx-auto p-8 container text-center">
     <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-6">
-  <IconCheck />
+      <IconCheck />
     </div>
 
     <h2 className="text-2xl font-bold text-slate-800 mb-4">로드맵 생성 완료!</h2>
@@ -467,10 +695,10 @@ const CompletionStep = ({ onFinish, onBack }: { onFinish: () => void; onBack: ()
 
     <div className="grid grid-cols-2 gap-4 mb-8 text-left">
       {[
-  { icon: <IconMap />, title: '맞춤형 로드맵', desc: 'AI가 분석한 최적의 수강 경로' },
-  { icon: <IconTrophy />, title: '성취 목표', desc: '단계별 학습 목표와 마일스톤' },
-  { icon: <IconCalendar />, title: '학기별 계획', desc: '체계적인 시간표 및 일정 관리' },
-  { icon: <IconSparkles />, title: 'AI 추천', desc: '지속적인 맞춤형 과목 추천' },
+        { icon: <IconMap />, title: "맞춤형 로드맵", desc: "AI가 분석한 최적의 수강 경로" },
+        { icon: <IconTrophy />, title: "성취 목표", desc: "단계별 학습 목표와 마일스톤" },
+        { icon: <IconCalendar />, title: "학기별 계획", desc: "체계적인 시간표 및 일정 관리" },
+        { icon: <IconSparkles />, title: "AI 추천", desc: "지속적인 맞춤형 과목 추천" },
       ].map((feature, index) => (
         <div key={index} className="p-4 bg-slate-50 rounded-lg">
           <div className="text-blue-600 mb-2">{feature.icon}</div>
@@ -480,40 +708,56 @@ const CompletionStep = ({ onFinish, onBack }: { onFinish: () => void; onBack: ()
       ))}
     </div>
     <div className="mt-8 flex flex-col sm:flex-row gap-4">
-      <Button onClick={onBack} variant="secondary" className="w-full sm:w-1/3 font-bold py-3 px-4 rounded-xl">
+      <Button
+        onClick={onBack}
+        variant="secondary"
+        className="w-full sm:w-1/3 font-bold py-3 px-4 rounded-xl"
+      >
         재설정
       </Button>
-      <Button onClick={onFinish} variant="primary" className="w-full sm:w-2/3 font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/30">
+      <Button
+        onClick={onFinish}
+        variant="primary"
+        className="w-full sm:w-2/3 font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/30"
+      >
         한성 길라잡이 시작하기
       </Button>
     </div>
-    <p className="text-xs text-slate-400 mt-4">로드맵은 언제든지 &apos;로드맵&apos; 탭에서 수정하고 자세히 볼 수 있어요.</p>
+    <p className="text-xs text-slate-400 mt-4">
+      로드맵은 언제든지 &apos;로드맵&apos; 탭에서 수정하고 자세히 볼 수 있어요.
+    </p>
   </Card>
 );
 
-export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScreenProps) => {
+export const OnboardingScreen = ({
+  authInfo,
+  onComplete,
+  onRecommendRoadmaps,
+  onInfoFetch,
+}: OnboardingScreenProps) => {
   const [step, setStep] = useState(1);
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type?: "success" | "error" | "info";
+  } | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
 
-  const [consentChoices, setConsentChoices] = useState<ConsentChoices>(
-    student.consentChoices || {
-      profile: true,
-      courses: true,
-      timetable: true,
-    }
-  );
-
+  const [consentChoices, setConsentChoices] = useState<ConsentChoices>({
+    profile: true,
+    courses: true,
+    timetable: true,
+  });
   const [preferences, setPreferences] = useState<UserPreferences>({
-    careerPaths: student.careerPaths || [],
-    studyStyle: student.studyStyle || {
-      creditLoad: 'normal',
-      preference: 'balanced',
-      ratio: 'balanced',
+    careerPaths: [],
+    studyStyle: {
+      creditLoad: "normal",
+      preference: "balanced",
+      ratio: "balanced",
     },
-    interests: student.interests || [],
-    minor: '',
+    interests: [],
+    minor: "",
     academicGoals: [],
   });
 
@@ -522,22 +766,12 @@ export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScre
       .filter((p) => p !== CareerPath.NONE)
       .map((p) => `${p} 트랙` as Track);
     while (tracks.length < 2) {
-      tracks.push('트랙 미지정');
+      tracks.push("트랙 미지정");
     }
-
-    const updatedStudent: Student = {
-      ...student,
-      careerPaths: preferences.careerPaths,
-      tracks,
-      studyStyle: preferences.studyStyle,
-      interests: preferences.interests,
-      consentChoices,
-    };
-
-    setToast({ message: '로드맵이 생성되었습니다!', type: 'success' });
+    setToast({ message: "로드맵이 생성되었습니다!", type: "success" });
     setTimeout(() => {
       setToast(null);
-      onComplete(updatedStudent);
+      onComplete();
     }, 1000);
   };
 
@@ -549,13 +783,26 @@ export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScre
             consentChoices={consentChoices}
             setConsentChoices={setConsentChoices}
             onNext={() => setStep(2)}
+            setPreferences={setPreferences}
             onOpenPolicy={() => setIsPolicyModalOpen(true)}
+            onInfoFetch={onInfoFetch}
           />
         );
       case 2:
-        return <PreferencesStep preferences={preferences} setPreferences={setPreferences} onNext={() => setStep(3)} />;
+        return (
+          <PreferencesStep
+            preferences={preferences}
+            setPreferences={setPreferences}
+            onNext={() => setStep(3)}
+            onPrev={() => setStep(1)}
+            onRecommendRoadmaps={onRecommendRoadmaps}
+            authInfo={authInfo}
+            setStep={setStep}
+            setAnalysisLoading={setAnalysisLoading}
+          />
+        );
       case 3:
-        return <AnalysisStep onNext={() => setStep(4)} />;
+        return <AnalysisStep onNext={() => setStep(4)} analysisLoading={analysisLoading} />;
       case 4:
         return <CompletionStep onFinish={handleFinish} onBack={() => setStep(2)} />;
       default:
@@ -563,12 +810,11 @@ export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScre
     }
   };
 
-  // ...existing code...
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex flex-col relative overflow-hidden ${fadeIn}`}>
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
-      )}
+    <div
+      className={`min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex flex-col relative overflow-hidden ${fadeIn}`}
+    >
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
@@ -581,13 +827,6 @@ export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScre
           <IconCompass />
           <span className="font-bold text-lg">한성 길라잡이</span>
         </div>
-        <button
-          onClick={() => setIsExitModalOpen(true)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors"
-        >
-          <IconX />
-          <span className="hidden sm:inline">나중에 설정</span>
-        </button>
       </header>
 
       {/* Main content */}
@@ -598,23 +837,6 @@ export const OnboardingScreen = ({ student, onComplete, onExit }: OnboardingScre
 
       {/* Modals */}
       {isPolicyModalOpen && <PrivacyPolicyModal onClose={() => setIsPolicyModalOpen(false)} />}
-
-      {isExitModalOpen && (
-        <ConfirmationModal
-          isOpen={isExitModalOpen}
-          onClose={() => setIsExitModalOpen(false)}
-          onConfirm={onExit}
-          title="설정을 나중에 하시겠습니까?"
-          message={
-            <p>
-              지금 설정하지 않으면 맞춤형 기능을 이용할 수 없습니다.
-              <br />
-              언제든지 설정에서 다시 진행할 수 있어요.
-            </p>
-          }
-          confirmButtonText="네, 나중에 할게요"
-        />
-      )}
     </div>
   );
 };

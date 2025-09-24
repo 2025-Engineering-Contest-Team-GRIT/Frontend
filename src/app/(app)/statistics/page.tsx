@@ -1,7 +1,7 @@
-import { StatisticsPageClient } from "@/components/client/StatisticsPageClient";
+// import { StatisticsPageClient } from "@/components/client/StatisticsPageClient";
 
-export const dynamic = "force-dynamic"; // SSR
+// export const dynamic = "force-dynamic"; // SSR
 
-export default function StatisticsPage() {
-  return <StatisticsPageClient />;
-}
+// export default function StatisticsPage() {
+//   return <StatisticsPageClient />;
+// }

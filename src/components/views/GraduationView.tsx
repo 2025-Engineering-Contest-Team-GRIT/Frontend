@@ -1,164 +1,122 @@
-'use client';
+"use client";
 
-
-import React, { useMemo, useState, useEffect } from 'react';
-import type { Student } from '@/types';
-import { CourseCategory, CourseStatus } from '@/types';
-import { Card, IconCube, IconBook, IconTrophy, IconMortarBoard, IconRocket, IconArrowLeft, IconCheck, IconChevronRight } from '../common';
-import { ProgressBar } from '../ProgressBar';
-import { Button } from '../Button';
-import { Toast } from '../Toast';
-import { fadeIn } from '../animations';
-
-const GRAD_REQUIREMENTS = {
-  TOTAL_CREDITS: 130,
-  MAJOR_FOUNDATION: 3,
-  MAJOR_MANDATORY: 15,
-  MAJOR_TOTAL: 39,
-};
+import React, { useMemo, useState, useEffect } from "react";
+import type { GraduationInfo } from "@/types";
+import { CourseCategory, CourseStatus } from "@/types";
+import {
+  Card,
+  IconCube,
+  IconBook,
+  IconTrophy,
+  IconMortarBoard,
+  IconRocket,
+  IconArrowLeft,
+  IconCheck,
+  IconChevronRight,
+} from "../common";
+import { ProgressBar } from "../ProgressBar";
+import { Button } from "../Button";
+import { Toast } from "../Toast";
+import { fadeIn } from "../animations";
 
 interface GraduationViewProps {
-  student: Student;
+  graduationInfo: GraduationInfo;
+  onCertificationChange?: (type: string, isCompleted: boolean) => Promise<boolean>;
 }
 
-
-export const GraduationView: React.FC<GraduationViewProps> = ({ student }) => {
-  const [selectedCertificationId, setSelectedCertificationId] = useState<string | null>(null);
-  const [userCertifications, setUserCertifications] = useState<Record<string, boolean>>({
-    capstone: false,
-    thesis: false,
-    license: false,
-  });
-  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
-
-  const certificationOptions = [
-    {
-      id: 'capstone',
-      label: '캡스톤디자인 발표회 작품 출품',
-      description: '필수 캡스톤디자인 과목을 이수해야 합니다. 관련 과목 이수 시 자동으로 완료 처리됩니다.',
+export const GraduationView: React.FC<GraduationViewProps> = ({
+  graduationInfo,
+  onCertificationChange,
+}) => {
+  // 인증 요건 설명 매핑 (예시)
+  const certificationDescriptions: Record<
+    string,
+    { label: string; description: string; icon: React.ReactNode; type: string }
+  > = {
+    "캡스톤디자인 발표회 작품 출품": {
+      label: "캡스톤디자인 발표회 작품 출품",
+      description:
+        "필수 캡스톤디자인 과목을 이수해야 합니다. 관련 과목 이수 시 자동으로 완료 처리됩니다.",
       icon: <IconCube />,
+      type: "capstone",
     },
-    {
-      id: 'thesis',
-      label: '졸업 논문',
-      description: '지도교수님과 상의하여 논문을 작성하고 심사를 통과해야 합니다.',
+    "졸업 논문": {
+      label: "졸업 논문",
+      description: "지도교수님과 상의하여 논문을 작성하고 심사를 통과해야 합니다.",
       icon: <IconBook />,
+      type: "thesis",
     },
-    {
-      id: 'license',
-      label: '전공 관련 자격증/공모전 입상',
-      description: '관련 성과를 제출하여 교수회의 심사를 통과해야 합니다.',
+    "전공 관련 자격증/공모전 입상": {
+      label: "전공 관련 자격증/공모전 입상",
+      description: "관련 성과를 제출하여 교수회의 심사를 통과해야 합니다.",
       icon: <IconTrophy />,
+      type: "award",
     },
-  ];
+  };
 
-  useEffect(() => {
-    const completedCourses = student.roadmap.semesters
-      .flatMap((s) => s.courses)
-      .filter((c) => c.status === CourseStatus.COMPLETED);
-    const capstoneCompleted = completedCourses.some((c) => c.name && c.name.includes('캡스톤디자인'));
+  const [selectedCertification, setSelectedCertification] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type?: "success" | "error" | "info";
+  } | null>(null);
 
-    setUserCertifications((prev) => ({
-      ...prev,
-      capstone: capstoneCompleted,
-    }));
-  }, [student.roadmap]);
+  // 충족 여부 계산
+  const allTracksMet = graduationInfo.track_progress_list.every(
+    (track) =>
+      track.major_basic.completed_credits >= track.major_basic.required_credits &&
+      track.major_required.completed_credits >= track.major_required.required_credits &&
+      track.major_subtotal.completed_credits >= track.major_subtotal.required_credits,
+  );
+  const totalCreditsMet =
+    graduationInfo.total_completed_credits >= graduationInfo.total_required_credits;
+  const certificationMet = graduationInfo.certifications.some((c) => c.completed);
+  const allMet = allTracksMet && totalCreditsMet && certificationMet;
 
-  const graduationProgress = useMemo(() => {
-    const completedCourses = student.roadmap.semesters
-      .flatMap((s) => s.courses)
-      .filter((c) => c.status === CourseStatus.COMPLETED);
+  // 남은 요건
+  const remainingRequirements: string[] = [];
+  if (!totalCreditsMet) remainingRequirements.push("총 이수 학점 충족");
+  graduationInfo.track_progress_list.forEach((track) => {
+    if (track.major_basic.completed_credits < track.major_basic.required_credits)
+      remainingRequirements.push(`${track.track_name} 전공기초 학점`);
+    if (track.major_required.completed_credits < track.major_required.required_credits)
+      remainingRequirements.push(`${track.track_name} 전공필수 학점`);
+    if (track.major_subtotal.completed_credits < track.major_subtotal.required_credits)
+      remainingRequirements.push(`${track.track_name} 전공소계 학점`);
+  });
+  if (!certificationMet) remainingRequirements.push("졸업 인증 요건 충족");
 
-    const totalCredits = completedCourses.reduce((acc, c) => acc + c.credits, 0);
-    const totalCreditsMet = totalCredits >= GRAD_REQUIREMENTS.TOTAL_CREDITS;
-
-    const trackProgress = student.tracks
-      .filter((track) => track !== '트랙 미지정')
-      .map((track) => {
-        const trackCourses = completedCourses.filter((c) => c.track === track);
-
-        const foundation = trackCourses
-          .filter((c) => c.category === CourseCategory.FOUNDATION)
-          .reduce((acc, c) => acc + c.credits, 0);
-        const mandatory = trackCourses
-          .filter((c) => c.category === CourseCategory.MANDATORY)
-          .reduce((acc, c) => acc + c.credits, 0);
-        const elective = trackCourses
-          .filter((c) => c.category === CourseCategory.ELECTIVE)
-          .reduce((acc, c) => acc + c.credits, 0);
-        const majorTotal = foundation + mandatory + elective;
-
-        return {
-          trackName: track,
-          foundation: {
-            completed: foundation,
-            required: GRAD_REQUIREMENTS.MAJOR_FOUNDATION,
-            isMet: foundation >= GRAD_REQUIREMENTS.MAJOR_FOUNDATION,
-          },
-          mandatory: {
-            completed: mandatory,
-            required: GRAD_REQUIREMENTS.MAJOR_MANDATORY,
-            isMet: mandatory >= GRAD_REQUIREMENTS.MAJOR_MANDATORY,
-          },
-          majorTotal: {
-            completed: majorTotal,
-            required: GRAD_REQUIREMENTS.MAJOR_TOTAL,
-            isMet: majorTotal >= GRAD_REQUIREMENTS.MAJOR_TOTAL,
-          },
-        };
-      });
-
-    const allTrackRequirementsMet = trackProgress.every(
-      (p) => p.foundation.isMet && p.mandatory.isMet && p.majorTotal.isMet
-    );
-
-    const certificationMet = Object.values(userCertifications).some((met) => met);
-
-    const remainingRequirements = [];
-    if (!totalCreditsMet) remainingRequirements.push('총 이수 학점 충족');
-
-    trackProgress.forEach((p) => {
-      if (!p.foundation.isMet) remainingRequirements.push(`${p.trackName.replace(' 트랙', '')} 전공기초 학점`);
-      if (!p.mandatory.isMet) remainingRequirements.push(`${p.trackName.replace(' 트랙', '')} 전공필수 학점`);
-      if (!p.majorTotal.isMet) remainingRequirements.push(`${p.trackName.replace(' 트랙', '')} 전공소계 학점`);
-    });
-
-    if (!certificationMet) remainingRequirements.push('졸업 인증 요건 충족');
-
-    const allMet = totalCreditsMet && allTrackRequirementsMet && certificationMet;
-
-    return { totalCredits, totalCreditsMet, trackProgress, certificationMet, allMet, remainingRequirements };
-  }, [student, userCertifications]);
-
+  // 요약 카드
   const SummaryCard = () => {
-    if (graduationProgress.allMet) {
+    if (allMet) {
       return (
-        <Card className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 flex items-center justify-center text-emerald-500 bg-white rounded-full shadow-md">
-              <IconTrophy className="w-8 h-8" />
+        <Card className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 flex items-center justify-center text-emerald-600 bg-white rounded-full shadow">
+              <IconTrophy className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-emerald-800">축하합니다! 졸업 요건을 모두 충족했습니다!</h3>
-              <p className="text-emerald-700 mt-1">미래를 향한 다음 걸음을 응원합니다.</p>
+              <h3 className="text-base font-bold text-emerald-800">
+                축하합니다! 졸업 요건을 모두 충족했습니다!
+              </h3>
+              <p className="text-emerald-700 mt-0.5 text-xs">미래를 향한 다음 걸음을 응원합니다.</p>
             </div>
           </div>
         </Card>
       );
     }
     return (
-      <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 flex items-center justify-center text-blue-500 bg-white rounded-full shadow-md">
-            <IconRocket className="w-8 h-8" />
+      <Card className="p-4 bg-gradient-to-r from-sky-50 to-blue-50 border-sky-200">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 flex items-center justify-center text-sky-600 bg-white rounded-full shadow">
+            <IconRocket className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-blue-800">
-              졸업까지 {graduationProgress.remainingRequirements.length}개의 요건이 남았어요!
+            <h3 className="text-base font-bold text-sky-800">
+              졸업까지 {remainingRequirements.length}개의 요건이 남았어요!
             </h3>
-            <p className="text-blue-700 mt-1">
-              남은 요건: {graduationProgress.remainingRequirements.slice(0, 2).join(', ')}
-              {graduationProgress.remainingRequirements.length > 2 ? ' 등' : ''}
+            <p className="text-sky-700 mt-0.5 text-xs">
+              남은 요건: {remainingRequirements.slice(0, 2).join(", ")}
+              {remainingRequirements.length > 2 ? " 등" : ""}
             </p>
           </div>
         </div>
@@ -166,111 +124,136 @@ export const GraduationView: React.FC<GraduationViewProps> = ({ student }) => {
     );
   };
 
-  const selectedCert = certificationOptions.find((c) => c.id === selectedCertificationId);
-
-  // ...existing code...
   return (
-    <div className={`p-6 h-full overflow-y-auto ${fadeIn}`}>
-      <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-lg">
+    <div className="p-4 h-full overflow-y-auto">
+      <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+        <div className="w-6 h-6 flex items-center justify-center bg-violet-100 text-violet-600 rounded-lg">
           <IconMortarBoard />
         </div>
         <span>졸업 요건</span>
       </h2>
 
       <SummaryCard />
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Column 1 */}
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h3 className="font-bold text-slate-700 text-lg mb-4">총 이수 학점</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        {/* Column 1: 학점/인증 */}
+        <div className="space-y-4">
+          <Card className="p-4">
+            <h3 className="font-bold text-slate-700 text-base mb-2">총 이수 학점</h3>
             <div className="text-center">
-              <span className="text-4xl font-bold text-blue-600">{graduationProgress.totalCredits}</span>
-              <span className="text-lg text-slate-500 font-medium">
-                {' '}
-                / {GRAD_REQUIREMENTS.TOTAL_CREDITS} 학점
+              <span className="text-2xl font-bold text-sky-600">
+                {graduationInfo.total_completed_credits}
               </span>
+              <span className="text-base text-slate-500 font-medium"> / 130 학점</span>
             </div>
-            <div className="mt-3">
-              <ProgressBar value={graduationProgress.totalCredits} max={GRAD_REQUIREMENTS.TOTAL_CREDITS} />
+            <div className="mt-2">
+              <ProgressBar
+                value={graduationInfo.total_completed_credits}
+                max={130}
+                className="h-2 bg-sky-200"
+              />
             </div>
           </Card>
 
-          {selectedCertificationId && selectedCert ? (
-            <Card className="p-6">
+          {/* 인증 요건 */}
+          {selectedCertification ? (
+            <Card className="p-4">
               <Button
-                onClick={() => setSelectedCertificationId(null)}
+                onClick={() => setSelectedCertification(null)}
                 variant="secondary"
-                className="flex items-center gap-1 text-sm font-semibold mb-4"
+                className="flex items-center gap-1 text-xs font-semibold mb-2 px-2 py-1"
               >
-                <IconArrowLeft className="w-4 h-4" />
+                <IconArrowLeft className="w-3 h-3" />
                 목록으로 돌아가기
               </Button>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-lg text-blue-600 bg-blue-100">
-                  {selectedCert.icon}
+              <div className="flex items-start gap-2">
+                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-sky-600 bg-sky-100">
+                  {certificationDescriptions[selectedCertification]?.icon}
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-lg">{selectedCert.label}</h3>
-                  <p className="text-sm text-slate-500 mt-1">{selectedCert.description}</p>
+                  <h3 className="font-bold text-slate-800 text-base">
+                    {certificationDescriptions[selectedCertification]?.label ??
+                      selectedCertification}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {certificationDescriptions[selectedCertification]?.description}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      variant="primary"
+                      className="text-xs px-3 py-1"
+                      onClick={async () => {
+                        if (onCertificationChange) {
+                          const ok = await onCertificationChange(
+                            certificationDescriptions[selectedCertification]?.type,
+                            true,
+                          );
+                          setToast({
+                            message: ok ? "완료로 처리되었습니다." : "처리에 실패했습니다.",
+                            type: ok ? "success" : "error",
+                          });
+                          setSelectedCertification(null);
+                        }
+                      }}
+                    >
+                      완료로 처리
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-xs px-3 py-1"
+                      onClick={async () => {
+                        if (onCertificationChange) {
+                          const ok = await onCertificationChange(
+                            certificationDescriptions[selectedCertification]?.type,
+                            false,
+                          );
+                          setToast({
+                            message: ok ? "미완료로 처리되었습니다." : "처리에 실패했습니다.",
+                            type: ok ? "success" : "error",
+                          });
+                          setSelectedCertification(null);
+                        }
+                      }}
+                    >
+                      미완료로 처리
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-6 flex justify-center gap-4">
-                <Button
-                  onClick={() => {
-                    setUserCertifications({ ...userCertifications, [selectedCert.id]: true });
-                    setToast({ message: '완료로 표시되었습니다.', type: 'success' });
-                  }}
-                  variant={userCertifications[selectedCert.id] ? 'primary' : 'outline'}
-                  className="w-full py-3"
-                >
-                  완료로 표시
-                </Button>
-                <Button
-                  onClick={() => {
-                    setUserCertifications({ ...userCertifications, [selectedCert.id]: false });
-                    setToast({ message: '미완료로 표시되었습니다.', type: 'info' });
-                  }}
-                  variant={!userCertifications[selectedCert.id] ? 'secondary' : 'outline'}
-                  className="w-full py-3"
-                >
-                  미완료로 표시
-                </Button>
               </div>
             </Card>
           ) : (
-            <Card className="p-6">
-              <h3 className="font-bold text-slate-700 text-lg mb-4">졸업 인증 요건 (택 1)</h3>
-              <div className="space-y-3">
-                {certificationOptions.map((opt) => (
+            <Card className="p-4">
+              <h3 className="font-bold text-slate-700 text-base mb-2">졸업 인증 요건 (택 1)</h3>
+              <div className="space-y-2">
+                {graduationInfo.certifications.map((cert) => (
                   <Button
-                    key={opt.id}
-                    onClick={() => setSelectedCertificationId(opt.id)}
-                    variant="outline"
-                    className="w-full text-left flex items-center gap-4 p-4 rounded-xl border-2 duration-300"
+                    key={cert.certification_name}
+                    onClick={() => setSelectedCertification(cert.certification_name)}
+                    variant={cert.completed ? "primary" : "outline"}
+                    className={`w-full text-left flex items-center gap-2 p-2 rounded-lg border duration-200 text-xs ${cert.completed ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"}`}
                   >
-                    <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg text-blue-600 bg-blue-100">
-                      {opt.icon}
+                    <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg text-sky-600 bg-sky-100">
+                      {certificationDescriptions[cert.certification_name]?.icon ?? <IconTrophy />}
                     </div>
                     <div className="flex-grow">
-                      <p className="font-bold text-slate-800">{opt.label}</p>
+                      <p className="font-bold text-slate-800 text-xs">
+                        {certificationDescriptions[cert.certification_name]?.label ??
+                          cert.certification_name}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        {certificationDescriptions[cert.certification_name]?.description}
+                      </p>
                     </div>
-                    <div className="ml-auto flex items-center gap-2">
-                      {userCertifications[opt.id] ? (
-                        <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
-                          <IconCheck className="w-3 h-3" />
-                          완료
-                        </span>
+                    <div className="ml-auto flex items-center gap-1">
+                      {cert.completed ? (
+                        <span className="text-emerald-500 font-bold">완료</span>
                       ) : (
-                        <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                          미완료
-                        </span>
+                        <span className="text-slate-400">미완료</span>
                       )}
-                      <span className="text-slate-300"><IconChevronRight /></span>
+                      <span className="text-slate-300">
+                        <IconChevronRight className="w-3 h-3" />
+                      </span>
                     </div>
                   </Button>
                 ))}
@@ -279,42 +262,91 @@ export const GraduationView: React.FC<GraduationViewProps> = ({ student }) => {
           )}
         </div>
 
-        {/* Column 2 */}
-        <div className="space-y-6">
-          {graduationProgress.trackProgress.map(({ trackName, foundation, mandatory, majorTotal }) => (
-            <Card key={trackName} className="p-6">
-              <h3 className="font-bold text-slate-700 text-lg mb-4">{trackName}</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <p className="font-semibold text-slate-600">전공 기초</p>
-                    <p className="text-sm font-medium">
-                      <span className={`${foundation.isMet ? 'text-emerald-600' : 'text-rose-600'}`}>{foundation.completed}</span>{' '}/ {foundation.required} 학점
-                    </p>
+        {/* Column 2: 트랙별 진행 */}
+        <div className="space-y-4 h-full">
+          <Card className="p-4 flex flex-col gap-8">
+            {graduationInfo.track_progress_list.map((track) => (
+              <div key={track.track_name}>
+                <h3 className="font-bold text-slate-700 text-base mb-2">{track.track_name}</h3>
+                <div className="space-y-2 text-slate-500">
+                  <div>
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <p className="font-semibold text-slate-600 text-xs">전공 기초</p>
+                      <p className="text-xs font-medium">
+                        <span
+                          className={
+                            track.major_basic.completed_credits >=
+                            track.major_basic.required_credits
+                              ? "text-emerald-600"
+                              : "text-rose-600"
+                          }
+                        >
+                          {track.major_basic.completed_credits}
+                        </span>
+                        {" / "}
+                        {track.major_basic.required_credits} 학점
+                      </p>
+                    </div>
+                    <ProgressBar
+                      value={track.major_basic.completed_credits}
+                      max={track.major_basic.required_credits}
+                      className="h-2 bg-emerald-100"
+                    />
                   </div>
-                  <ProgressBar value={foundation.completed} max={foundation.required} className="bg-green-500" />
-                </div>
-                <div>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <p className="font-semibold text-slate-600">전공 필수</p>
-                    <p className="text-sm font-medium">
-                      <span className={`${mandatory.isMet ? 'text-emerald-600' : 'text-rose-600'}`}>{mandatory.completed}</span>{' '}/ {mandatory.required} 학점
-                    </p>
+                  <div>
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <p className="font-semibold text-slate-600 text-xs">전공 필수</p>
+                      <p className="text-xs font-medium">
+                        <span
+                          className={
+                            track.major_required.completed_credits >=
+                            track.major_required.required_credits
+                              ? "text-emerald-600"
+                              : "text-rose-600"
+                          }
+                        >
+                          {track.major_required.completed_credits}
+                        </span>
+                        {" / "}
+                        {track.major_required.required_credits} 학점
+                      </p>
+                    </div>
+                    <ProgressBar
+                      value={track.major_required.completed_credits}
+                      max={track.major_required.required_credits}
+                      className="h-2 bg-teal-100"
+                    />
                   </div>
-                  <ProgressBar value={mandatory.completed} max={mandatory.required} className="bg-teal-500" />
-                </div>
-                <div>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <p className="font-semibold text-slate-600">전공 소계 (기초+필수+선택)</p>
-                    <p className="text-sm font-medium">
-                      <span className={`${majorTotal.isMet ? 'text-emerald-600' : 'text-rose-600'}`}>{majorTotal.completed}</span>{' '}/ {majorTotal.required} 학점
-                    </p>
+                  <div>
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <p className="font-semibold text-slate-600 text-xs">
+                        전공 소계 (기초+필수+선택)
+                      </p>
+                      <p className="text-xs font-medium">
+                        <span
+                          className={
+                            track.major_subtotal.completed_credits >=
+                            track.major_subtotal.required_credits
+                              ? "text-emerald-600"
+                              : "text-rose-600"
+                          }
+                        >
+                          {track.major_subtotal.completed_credits}
+                        </span>
+                        {" / "}
+                        {track.major_subtotal.required_credits} 학점
+                      </p>
+                    </div>
+                    <ProgressBar
+                      value={track.major_subtotal.completed_credits}
+                      max={track.major_subtotal.required_credits}
+                      className="h-2 bg-cyan-100"
+                    />
                   </div>
-                  <ProgressBar value={majorTotal.completed} max={majorTotal.required} className="bg-cyan-500" />
                 </div>
               </div>
-            </Card>
-          ))}
+            ))}
+          </Card>
         </div>
       </div>
     </div>

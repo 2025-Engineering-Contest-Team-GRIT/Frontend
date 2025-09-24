@@ -8,13 +8,12 @@ import { logoutService } from "@/services/authService";
 
 export const HeaderClientWrapper = () => {
   const router = useRouter();
-  const { user, logout, setUser } = useAuth();
+  const { logout, authInfo } = useAuth();
 
   const logoutMutation = useMutation({
     mutationFn: logoutService,
     onSuccess: () => {
       logout();
-      setUser(null);
       router.push("/login");
     },
   });
@@ -23,5 +22,5 @@ export const HeaderClientWrapper = () => {
     logoutMutation.mutate();
   };
 
-  return <SSRHeader student={user ?? undefined} onLogout={handleLogout} />;
+  return <SSRHeader authInfo={authInfo} onLogout={handleLogout} />;
 };

@@ -1,6 +1,5 @@
 "use client";
 
-import { SSRHeader } from "@/components/server/Layout";
 import { LoginScreen } from "@/components/views/LoginScreen";
 import { useAuth } from "@/hooks/useStore";
 import { useRouter } from "next/navigation";
@@ -9,17 +8,24 @@ import { loginService } from "@/services/authService";
 
 export const LoginClientWrapper = () => {
   const router = useRouter();
-  const { login, setUser } = useAuth();
+  const { login, setAsLoaded } = useAuth();
 
   const loginMutation = useMutation({
     mutationFn: ({ studentId, password }: { studentId: string; password: string }) =>
       loginService(studentId, password),
-    onSuccess: (data) => {
-      console.log("Login successful:", data);
+    onSuccess: (data, variables) => {
       // setUser(student);
-      login();
-      // router.push("/dashboard");
-      alert("로그인 성공! 대시보드로 이동합니다.");
+      login(data.authInfo);
+      setAsLoaded();
+      if (data.isNewUser) {
+        // 비밀번호를 sessionStorage에 일회성으로 저장
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("onboarding_temp_pw", variables.password);
+        }
+        router.push("/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
     },
     onError: (error: any) => {
       // 에러 처리는 LoginScreen에서 catch로 처리

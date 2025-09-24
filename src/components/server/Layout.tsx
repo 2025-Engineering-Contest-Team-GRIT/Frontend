@@ -1,14 +1,14 @@
 import React from "react";
-import type { Student } from "@/types";
 import { IconCompass, IconLogOut } from "@/components/common";
+import { AuthInfo } from "@/types";
 
 interface SSRHeaderProps {
-  student?: Student;
+  authInfo: AuthInfo | null;
   onLogout?: () => void;
   title?: string;
 }
 
-export const SSRHeader = ({ student, onLogout, title = "한성 길라잡이" }: SSRHeaderProps) => (
+export const SSRHeader = ({ authInfo, onLogout, title = "한성 길라잡이" }: SSRHeaderProps) => (
   <header className="p-4 bg-white/50 backdrop-blur-lg border-b border-slate-200/80 sticky top-0 z-30 shrink-0">
     <div className="max-w-8xl mx-auto flex justify-between items-center">
       <div className="flex items-center gap-3">
@@ -17,14 +17,8 @@ export const SSRHeader = ({ student, onLogout, title = "한성 길라잡이" }: 
         </div>
         <h1 className="text-xl font-bold text-slate-800">{title}</h1>
       </div>
-      {student && (
+      {authInfo && (
         <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="font-semibold text-slate-700">{student.name}</p>
-            <p className="text-sm text-slate-500">
-              {student.studentId} | {student.major}
-            </p>
-          </div>
           {onLogout && (
             <button
               onClick={onLogout}
@@ -37,52 +31,6 @@ export const SSRHeader = ({ student, onLogout, title = "한성 길라잡이" }: 
       )}
     </div>
   </header>
-);
-
-interface SSRLayoutProps {
-  children: React.ReactNode;
-  student?: Student;
-  showNavigation?: boolean;
-}
-
-export const SSRLayout = ({ children, student, showNavigation = true }: SSRLayoutProps) => (
-  <div className="flex flex-col h-screen bg-slate-50">
-    <SSRHeader student={student} />
-    <div className="flex flex-1 overflow-hidden">
-      {showNavigation && (
-        <aside className="w-56 bg-white/60 backdrop-blur-sm border-r border-slate-200/80 p-4 shrink-0">
-          {/* Static navigation placeholder - CSR components will enhance this */}
-          <nav className="space-y-2">
-            <div className="text-sm font-medium text-slate-500 mb-4">메뉴</div>
-            <div className="space-y-1">
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg bg-blue-50 border border-blue-100">
-                대시보드
-              </div>
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg hover:bg-slate-100">
-                로드맵
-              </div>
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg hover:bg-slate-100">
-                이수현황
-              </div>
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg hover:bg-slate-100">
-                시간표
-              </div>
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg hover:bg-slate-100">
-                통계
-              </div>
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg hover:bg-slate-100">
-                졸업요건
-              </div>
-              <div className="px-3 py-2 text-sm text-slate-600 rounded-lg hover:bg-slate-100">
-                설정
-              </div>
-            </div>
-          </nav>
-        </aside>
-      )}
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
-  </div>
 );
 
 export const SSRLoadingSpinner = ({ message = "로딩 중..." }: { message?: string }) => (
