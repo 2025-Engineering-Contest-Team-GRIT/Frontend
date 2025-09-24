@@ -4,7 +4,7 @@ import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
 import { CourseCard } from "../CourseCard";
 import { RefreshButton } from "../common";
 import type { Semester } from "@/types";
-import { CourseStatus, Course } from "@/types";
+import { Course } from "@/types";
 
 interface RoadmapViewProps {
   roadmap: Semester[];

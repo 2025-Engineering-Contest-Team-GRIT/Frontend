@@ -4,8 +4,7 @@ import React from "react";
 import { Button } from "../Button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { DashboardInfo, Schedule, shortCourseInfo } from "@/types";
-import { CourseStatus } from "@/types";
-import { Card, IconUser, IconShare2, IconDashboard, IconSparkles } from "../common";
+import { Card, IconUser, IconDashboard, IconSparkles } from "../common";
 
 interface StudentInfoProps {
   dashboardInfo: DashboardInfo;

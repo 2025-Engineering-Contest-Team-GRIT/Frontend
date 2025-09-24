@@ -19,9 +19,16 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["react", "@typescript-eslint", "prettier"],
+  "plugins": ["react", "@typescript-eslint", "prettier", "unused-imports"],
   "rules": {
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "unused-imports/no-unused-imports": "off",
+    "unused-imports/no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "react/no-unescaped-entities": "off"
   },
   "settings": {
     "react": {

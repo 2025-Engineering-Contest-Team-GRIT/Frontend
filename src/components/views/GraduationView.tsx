@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState } from "react";
 import type { GraduationInfo } from "@/types";
-import { CourseCategory, CourseStatus } from "@/types";
 import {
   Card,
   IconCube,
@@ -11,13 +10,11 @@ import {
   IconMortarBoard,
   IconRocket,
   IconArrowLeft,
-  IconCheck,
   IconChevronRight,
 } from "../common";
 import { ProgressBar } from "../ProgressBar";
 import { Button } from "../Button";
 import { Toast } from "../Toast";
-import { fadeIn } from "../animations";
 
 interface GraduationViewProps {
   graduationInfo: GraduationInfo;

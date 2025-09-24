@@ -3,8 +3,7 @@
 import React from "react";
 import type { Course } from "@/types";
 
-import { IconCheck, IconClock, IconPlus, IconBook, IconSparkles } from "@/components/common";
-import { Button } from "./Button";
+import { IconCheck, IconClock, IconPlus, IconBook } from "@/components/common";
 
 // status: "COMPLETED" | "ENROLLED" | "RECOMMENDED" | "MANDATORY" (string)
 export const courseStatusStyles: Record<

@@ -4,8 +4,8 @@ import React, { useState, useMemo, useRef } from "react";
 import { Card, IconStar, IconMapPin, IconPieChart, IconSearch } from "../common";
 import { ProgressBar } from "../ProgressBar";
 import { Button } from "../Button";
-import type { CourseListItem, DetailedCourse, CourseCategory } from "@/types";
-import { CourseCategory as CourseCategoryValue, trackList } from "@/types";
+import type { CourseListItem } from "@/types";
+import { trackList } from "@/types";
 
 interface TabButtonProps {
   label: string;

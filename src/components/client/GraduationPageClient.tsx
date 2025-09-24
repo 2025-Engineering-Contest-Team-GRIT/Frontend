@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { GraduationView } from "@/components/views/GraduationView";
 import { useAuth } from "@/hooks/useStore";
 import { useGraduation } from "@/hooks/useData";
-import { mockStudents } from "@/data/mockData";
-import { StudentStatus } from "@/types";
 import { putGraduationCertification } from "@/services/modifyService";
 
 export function GraduationPageClient() {

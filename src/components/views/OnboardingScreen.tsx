@@ -30,7 +30,6 @@ import {
   IconX,
   IconCompass,
 } from "../common";
-import { ConfirmationModal } from "../ConfirmationModal";
 import { PrivacyPolicyModal } from "../PrivacyPolicyModal";
 import { InfoFetchResponse, RecommendProps } from "@/services/authService";
 
@@ -646,7 +645,7 @@ const AnalysisStep = ({
       if (interval) clearInterval(interval);
       clearTimeout(t1);
     };
-    // eslint-disable-next-line
+     
   }, [analysisLoading]);
 
   useEffect(() => {
@@ -668,7 +667,7 @@ const AnalysisStep = ({
     return () => {
       if (fastInterval) clearInterval(fastInterval);
     };
-    // eslint-disable-next-line
+     
   }, [analysisLoading, progress, currentMessage, done, onNext]);
 
   return (

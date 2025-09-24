@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 //import type { StudentWithMetrics, Course, AllCourses, Student } from "@/types"; --- IGNORE ---
 
-import { CourseStatus, AuthInfo } from "@/types";
+import { AuthInfo } from "@/types";
 import type { Course, CourseListItem } from "@/types";
 
 // 서버 데이터 상태 제거, 클라이언트 인증 여부만 유지

@@ -8,9 +8,7 @@ import {
   IconMap,
   IconTarget,
   IconCalendar,
-  IconBarChart2,
   IconMortarBoard,
-  IconSettings,
 } from "@/components/common";
 
 interface NavigationItem {
@@ -25,7 +23,6 @@ const navigationItems: NavigationItem[] = [
   { href: "/completion", label: "이수현황", icon: <IconTarget /> },
   { href: "/timetable", label: "시간표", icon: <IconCalendar /> },
   { href: "/graduation", label: "졸업요건", icon: <IconMortarBoard /> },
-  { href: "/settings", label: "설정", icon: <IconSettings /> },
 ];
 
 export const CSRNavigation = () => {

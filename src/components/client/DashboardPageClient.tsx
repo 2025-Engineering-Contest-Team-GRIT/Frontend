@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardView } from "@/components/views/DashboardView";
-import { useAuth, useNavigation } from "@/hooks/useStore";
+import { useAuth } from "@/hooks/useStore";
 import { CSRErrorBoundary } from "./ErrorBoundary";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";

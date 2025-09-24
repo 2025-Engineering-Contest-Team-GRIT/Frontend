@@ -1,7 +1,6 @@
 "use client";
 
 import { RoadmapView } from "@/components/views/RoadmapView";
-import { StudentStatus } from "@/types";
 import { useRoadmap } from "@/hooks/useData";
 import { useAuth, useCourseSelection } from "@/hooks/useStore";
 import { useEffect } from "react";

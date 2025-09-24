@@ -1,7 +1,6 @@
 // src/components/Toast.tsx
 import React, { useEffect } from 'react';
 import { IconCheck, IconX } from './common';
-import { fadeIn, shake } from './animations';
 
 export interface ToastProps {
   message: string;
