@@ -12,11 +12,11 @@ export const SSRHeader = ({ authInfo, onLogout, title = "한성 길라잡이" }:
   <header className="p-6 bg-gradient-to-r from-white/95 via-white/90 to-white/95 backdrop-blur-lg border-b border-white/20 shadow-lg shadow-gray-100/20 sticky top-0 z-30 shrink-0">
     <div className="max-w-8xl mx-auto flex justify-between items-center">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-200/40 animate-pulse-slow">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center shadow-lg shadow-purple-200/40 animate-pulse-slow">
           <IconCompass className="text-white drop-shadow-sm" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-br from-blue-600 to-blue-400 bg-clip-text text-transparent">
             {title}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">학업 계획을 스마트하게 관리하세요</p>

@@ -207,7 +207,7 @@ body {
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2s infinite;
+  /* animation: pulse-glow 2s infinite; */
 }
 
 .animate-float {

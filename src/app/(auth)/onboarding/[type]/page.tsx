@@ -9,11 +9,36 @@ import {
   InfoFetchResponse,
   RecommendProps,
 } from "@/services/authService";
+import { OnboardingRestartModal } from "@/components/OnboardingRestartModal";
 
-export default function OnboardingPage() {
+interface OnboardingPageProps {
+  params: {
+    type: string;
+  };
+}
+
+export default function OnboardingPage({ params }: OnboardingPageProps) {
+  const { type } = params;
   const { authInfo, isAuthenticated } = useAuth();
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = React.useState(type === "retry");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
   const router = useRouter();
   const [password, setPassword] = React.useState("");
+
+  const handleOnboardingRestart = async (password: string) => {
+    setIsLoading(true);
+    setError("");
+
+    setPassword(password);
+    setIsLoading(false);
+    setIsOnboardingModalOpen(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsOnboardingModalOpen(false);
+    setError("");
+  };
 
   React.useEffect(() => {
     if (isAuthenticated === false) {
@@ -22,6 +47,7 @@ export default function OnboardingPage() {
   }, [isAuthenticated, router]);
 
   React.useEffect(() => {
+    if (type === "retry") return;
     const tempPw =
       typeof window !== "undefined" ? sessionStorage.getItem("onboarding_temp_pw") : null;
     if (tempPw) {
@@ -69,11 +95,21 @@ export default function OnboardingPage() {
 
   if (!authInfo) return null;
   return (
-    <OnboardingScreen
-      authInfo={authInfo}
-      onInfoFetch={handleInfoFetch}
-      onRecommendRoadmaps={handleRecommendRoadmaps}
-      onComplete={handleOnComplete}
-    />
+    <>
+      <OnboardingScreen
+        authInfo={authInfo}
+        onInfoFetch={handleInfoFetch}
+        onRecommendRoadmaps={handleRecommendRoadmaps}
+        onComplete={handleOnComplete}
+      />
+
+      <OnboardingRestartModal
+        isOpen={isOnboardingModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleOnboardingRestart}
+        isLoading={isLoading}
+        error={error}
+      />
+    </>
   );
 }

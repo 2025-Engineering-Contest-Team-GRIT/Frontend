@@ -6,7 +6,7 @@ export async function putGraduationCertification(
   isCompleted: boolean,
 ): Promise<boolean> {
   const res = await fetch(
-    `api/v1/graduation/certifications/${type}?studentId=${studentId}&isCompleted=${isCompleted}`,
+    `/api/v1/graduation/certifications/${type}?studentId=${studentId}&isCompleted=${isCompleted}`,
     {
       method: "PUT",
       headers: {

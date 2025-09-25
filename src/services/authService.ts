@@ -4,7 +4,7 @@ export async function loginService(
   studentId: string,
   password: string,
 ): Promise<{ authInfo: AuthInfo; isNewUser: boolean }> {
-  const res = await fetch("api/users/login", {
+  const res = await fetch("/api/users/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -35,7 +35,7 @@ export async function fetchUserInfo(
   studentId: string,
   password: string,
 ): Promise<InfoFetchResponse> {
-  const res = await fetch("api/users/crawling", {
+  const res = await fetch("/api/users/crawling", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export interface RecommendProps {
 }
 
 export async function fetchRecommendedRoadmaps(recommendProps: RecommendProps): Promise<boolean> {
-  const res = await fetch("api/roadmap/courses/roadmap", {
+  const res = await fetch("/api/roadmap/courses/roadmap", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

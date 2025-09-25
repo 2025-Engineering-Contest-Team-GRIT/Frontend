@@ -134,7 +134,7 @@ const AddCourseModal: React.FC<{
     >
       <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-2xl flex flex-col gap-8 animate-fade-up border-2 border-white/50">
         <div className="text-center">
-          <h4 className="font-bold text-2xl mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+          <h4 className="font-bold text-2xl mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
             {course.course_name}
           </h4>
           <p className="text-slate-600 text-base">과목을 수강 계획에 추가합니다</p>
@@ -356,7 +356,7 @@ const ChangeTrackModal: React.FC<{
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-3">
+          <label className="block text-sm font-semibold text-slate-700 mb-2">
             트랙 선택
             {isExistingCourse && course.course_type.includes("전공필수") && (
               <span className="text-red-500 text-xs ml-2 block mt-1">
@@ -883,7 +883,7 @@ export const SimulationView: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center animate-pulse-glow">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center ">
                   <svg
                     className="w-6 h-6 text-white"
                     fill="none"
@@ -982,7 +982,7 @@ export const SimulationView: React.FC = () => {
                                     : `bg-white border-slate-200 hover:${courseTypeStyle.bg} hover:${courseTypeStyle.border} hover:shadow-md`
                                 }`}
                               >
-                                <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-start justify-between mb-2">
                                   <div className="font-semibold text-slate-800 truncate flex-1 text-base">
                                     {course.course_name}
                                   </div>
@@ -992,16 +992,13 @@ export const SimulationView: React.FC = () => {
                                     {koreanType}
                                   </div>
                                 </div>
-                                <div className="text-xs text-slate-600 mb-3 flex items-center gap-2">
-                                  <span className="font-bold text-sm text-indigo-600">
-                                    {course.credits}학점
-                                  </span>
+                                <div className="text-xs text-slate-600 mb-2 flex items-center gap-2">
+                                  {course.credits}학점
                                   {trackName && (
                                     <>
                                       <span className="text-slate-400">•</span>
-                                      <span className="bg-slate-100 px-2 py-1 rounded-lg">
-                                        {trackName}
-                                      </span>
+
+                                      {trackName}
                                     </>
                                   )}
                                   {isFromSimulation && (
@@ -1082,7 +1079,7 @@ export const SimulationView: React.FC = () => {
                       style={{ animationDelay: `${index * 0.05}s` }}
                       onClick={() => handleAddCourse(course)}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start justify-between mb-2">
                         <div className="font-bold text-slate-800 truncate flex-1 text-base leading-tight">
                           {course.course_name}
                         </div>
@@ -1092,7 +1089,7 @@ export const SimulationView: React.FC = () => {
                           {koreanType}
                         </div>
                       </div>
-                      <div className="text-sm text-slate-700 mb-3">
+                      <div className="text-sm text-slate-700 mb-2">
                         <span className="font-bold text-xl text-indigo-600">
                           {course.credit}학점
                         </span>

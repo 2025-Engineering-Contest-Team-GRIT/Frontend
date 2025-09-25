@@ -37,7 +37,7 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ dashboardInfo }) => {
         <div className="flex justify-between items-start mb-8">
           <div className="flex items-center gap-6">
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl animate-pulse-glow">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl ">
                 <IconUser className="w-10 h-10" />
               </div>
               <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white animate-bounce-slow" />
@@ -279,19 +279,35 @@ const TimetablePreview: React.FC<TimetablePreviewProps> = ({ todaySchedule, setA
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-cyan-50/50 pointer-events-none" />
 
       <div className="relative z-10">
-        <h3 className="font-bold text-slate-700 mb-4 text-lg flex items-center gap-3">
-          <div className="w-6 h-6 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-lg animate-pulse" />
-          오늘의 강의 ({today})
-        </h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-slate-700 text-lg flex items-center gap-3">
+            <div className="w-6 h-6 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-lg animate-pulse" />
+            오늘의 강의 ({today})
+          </h3>
+          <span
+            className="flex items-center justify-center gap-2 text-center text-indigo-400 bg-clip-text font-semibold cursor-pointer"
+            onClick={() => setActiveView("timetable")}
+          >
+            자세히 보기
+            <svg
+              className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+
         {todayClasses.length > 0 ? (
           <div className="space-y-3">
             {todayClasses.map((slot, idx) => (
               <div
                 key={slot.courseName + idx}
-                className="group text-sm p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200/50 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                className="group text-sm p-2 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200/50 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 group-hover:animate-pulse" />
+                <div className="flex items-start gap-2">
                   <div>
                     <p className="font-bold text-blue-800 mb-1">{slot.courseName}</p>
                     <p className="text-xs text-blue-600 flex items-center gap-2">
@@ -343,23 +359,6 @@ const TimetablePreview: React.FC<TimetablePreviewProps> = ({ todaySchedule, setA
             <p className="text-slate-500">오늘은 강의가 없어요!</p>
           </div>
         )}
-        <Button
-          onClick={() => setActiveView("timetable")}
-          variant="primary"
-          className="mt-4 w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-3"
-        >
-          <span className="flex items-center justify-center gap-2">
-            시간표 전체 보기
-            <svg
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
-        </Button>
       </div>
     </Card>
   );
@@ -390,16 +389,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dashboardInfo, set
 
       <div className="relative z-10 p-6 h-full overflow-y-auto animate-fade-in">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 animate-fade-down">
-            <h2 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-2 animate-gradient-x">
-              대시보드
-            </h2>
-            <p className="text-slate-600 text-lg">
-              {dashboardInfo.userInfo.name}님의 학업 현황을 요약했어요.
-            </p>
-            <div className="mt-4 h-1 w-24 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full mx-auto animate-pulse" />
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-up">
             <div className="lg:col-span-2">
               <div className="transform hover:scale-[1.02] transition-all duration-300">

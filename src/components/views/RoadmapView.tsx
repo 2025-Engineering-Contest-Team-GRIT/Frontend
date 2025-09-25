@@ -18,30 +18,57 @@ interface RoadmapViewProps {
 const COURSE_CARD_WIDTH = 260;
 const COURSE_CARD_HEIGHT = 104; // 실제 렌더링 높이(패딩, border, margin 등 포함)
 const COURSE_CARD_SPACING = 24; // 세로 간격 gap-6 = 1.5rem = 24px
-const COURSE_CARD_COL_SPACING = 24; // 가로 간격 gap-6 = 1.5rem = 24px
+const COURSE_CARD_COL_SPACING = 32; // 가로 간격 gap-8 = 2rem = 32px
 const SEMESTER_HEADER_HEIGHT = 70;
 
 // CourseCard 내부 padding, border, 아이콘 위치를 고려한 연결선 위치 계산
 const CARD_OUTER_PADDING = 16; // .p-4
 const CARD_BORDER_WIDTH = 2; // border-2
 const ICON_SIZE = 32; // w-8 h-8
-const ICON_OFFSET_X = CARD_OUTER_PADDING + ICON_SIZE / 2; // 왼쪽에서 아이콘 중심까지 거리
+const ICON_OFFSET_FROM_RIGHT = CARD_OUTER_PADDING + ICON_SIZE / 2; // 오른쪽에서 아이콘 중심까지 거리
+const ICON_OFFSET_FROM_TOP = CARD_OUTER_PADDING + ICON_SIZE / 2; // 위쪽에서 아이콘 중심까지 거리
 
 // from, to: 카드의 좌상단 기준 위치
 const generatePath = (from: { x: number; y: number }, to: { x: number; y: number }) => {
-  // 출발점: from 카드의 오른쪽 아이콘 중심
-  const startX = from.x + COURSE_CARD_WIDTH - ICON_OFFSET_X;
-  const startY = from.y + COURSE_CARD_HEIGHT;
-  // 도착점: to 카드의 왼쪽 아이콘 중심
-  const endX = to.x + ICON_OFFSET_X;
-  const endY = to.y + COURSE_CARD_HEIGHT;
+  // 출발점과 도착점의 위치 관계에 따라 연결점을 다르게 설정
+  let startX, startY, endX, endY;
+
+  if (from.x < to.x) {
+    // 왼쪽 카드에서 오른쪽 카드로: 오른쪽 가장자리에서 왼쪽 가장자리로
+    startX = from.x + COURSE_CARD_WIDTH - 10;
+    startY = from.y + ICON_OFFSET_FROM_TOP + 64;
+    endX = to.x;
+    endY = to.y + ICON_OFFSET_FROM_TOP + 64;
+  } else {
+    // 오른쪽 카드에서 왼쪽 카드로: 왼쪽 가장자리에서 오른쪽 가장자리로
+    startX = from.x - 10;
+    startY = from.y + ICON_OFFSET_FROM_TOP + 64;
+    endX = to.x + COURSE_CARD_WIDTH;
+    endY = to.y + ICON_OFFSET_FROM_TOP + 64;
+  }
 
   // 베지어 곡선을 위한 제어점 계산
-  const controlOffset = Math.abs(endX - startX) * 0.4; // 거리의 40%만큼 제어점 오프셋
-  const control1X = startX + controlOffset;
-  const control1Y = startY;
-  const control2X = endX - controlOffset;
-  const control2Y = endY;
+  const horizontalDistance = Math.abs(endX - startX);
+  const verticalDistance = Math.abs(endY - startY);
+
+  // 수평 거리가 클 때는 더 부드러운 곡선을, 수직 거리가 클 때는 더 직선적인 곡선을
+  const controlOffset = Math.min(horizontalDistance * 0.6, 100); // 최대 100px로 제한
+
+  let control1X, control1Y, control2X, control2Y;
+
+  if (from.x < to.x) {
+    // 왼쪽에서 오른쪽으로
+    control1X = startX + controlOffset;
+    control1Y = startY;
+    control2X = endX - controlOffset;
+    control2Y = endY;
+  } else {
+    // 오른쪽에서 왼쪽으로
+    control1X = startX - controlOffset;
+    control1Y = startY;
+    control2X = endX + controlOffset;
+    control2Y = endY;
+  }
 
   // 베지어 곡선 경로 생성
   return `M ${startX} ${startY} C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${endX} ${endY}`;
@@ -146,12 +173,19 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
         return { key: k, year: y, semester: s };
       })
       .sort((a, b) => a.year - b.year || a.semester - b.semester);
+
+    // 컨테이너의 패딩 32px(p-8) 고려
+    const CONTAINER_PADDING = 32;
+
     keys.forEach((item, idx) => {
       const semesterCourses = coursesByYearSemester[item.key];
       semesterCourses.forEach((course, courseIdx) => {
         positions[course.courseId] = {
-          x: idx * (COURSE_CARD_WIDTH + COURSE_CARD_COL_SPACING), // column 간격 24px(gap-6)
-          y: SEMESTER_HEADER_HEIGHT + courseIdx * (COURSE_CARD_HEIGHT + COURSE_CARD_SPACING),
+          x: CONTAINER_PADDING + idx * (COURSE_CARD_WIDTH + COURSE_CARD_COL_SPACING), // 패딩 + column 간격 32px(gap-8)
+          y:
+            CONTAINER_PADDING +
+            SEMESTER_HEADER_HEIGHT +
+            courseIdx * (COURSE_CARD_HEIGHT + COURSE_CARD_SPACING),
         };
       });
     });
@@ -333,11 +367,11 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               .map((item, idx) => (
                 <div
                   key={item.key}
-                  className="flex flex-col items-center w-[280px] animate-fade-up"
+                  className="flex flex-col items-center w-[260px] animate-fade-up"
                   style={{ animationDelay: `${idx * 0.1}s` }}
                 >
                   {/* Semester header */}
-                  <div className="z-10 bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl border-2 border-slate-200/80 p-4 mb-6 animate-pop w-full hover:scale-105 transition-all duration-300">
+                  <div className="z-10 bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl border-2 border-slate-200/80 p-4 mb-6 animate-pop w-full hover:scale-102 transition-all duration-300">
                     <h3 className="font-bold text-center text-lg bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                       {item.year}학년 {item.semester}학기
                     </h3>
@@ -354,10 +388,10 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
                         <div
                           key={`${item.key}-${course.courseId}`}
                           className={`relative transition-all duration-500 transform animate-pop ${
-                            focusedCourse === course.courseId ? "scale-110 z-20" : "z-10"
+                            focusedCourse === course.courseId ? "scale-105 z-20" : "z-10"
                           } opacity-100`}
                           style={{
-                            width: "280px",
+                            width: "260px",
                             height: `${COURSE_CARD_HEIGHT}px`,
                             animationDelay: `${index * 0.1}s`,
                           }}
@@ -387,7 +421,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               ))}
           </div>
           {/* Legend */}
-          <div className="fixed bottom-8 transition-all opacity-60 hover:opacity-100 right-8 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border-2 border-slate-200/80 p-6 z-20 animate-fade-in hover:scale-105 duration-300">
+          <div className="fixed bottom-8 transition-all opacity-60 hover:opacity-100 right-8 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border-2 border-slate-200/80 p-6 z-20 animate-fade-in hover:scale-102 duration-300">
             <h4 className="font-bold mb-4 text-lg bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500">
               범례
             </h4>

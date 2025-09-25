@@ -42,7 +42,7 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-export const CSRNavigation = (onBoardingOpen: any) => {
+export const CSRNavigation = () => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -50,9 +50,6 @@ export const CSRNavigation = (onBoardingOpen: any) => {
     <>
       <nav className="space-y-3 flex justify-between flex-col h-full">
         <div>
-          <div className="text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
-            메뉴
-          </div>
           <div className="space-y-2">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href;
@@ -65,7 +62,7 @@ export const CSRNavigation = (onBoardingOpen: any) => {
                   group relative flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all duration-300 overflow-hidden
                   ${
                     isActive
-                      ? "text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 font-semibold shadow-lg shadow-purple-200/40 scale-102"
+                      ? "text-white bg-gradient-to-r from-blue-500 to-blue-300 font-semibold shadow-lg shadow-purple-200/40 scale-102"
                       : "text-slate-600 hover:text-slate-900 hover:bg-gradient-to-r hover:from-gray-50 hover:via-white hover:to-gray-50 hover:shadow-md hover:shadow-gray-200/20 hover:scale-102"
                   }
                 `}
@@ -96,11 +93,8 @@ export const CSRNavigation = (onBoardingOpen: any) => {
 
         {/* 온보딩 재시작 버튼 */}
         <div className="mt-8 pt-6 border-t border-gradient-to-r from-gray-200/60 via-gray-300/80 to-gray-200/60">
-          <div className="text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            설정
-          </div>
           <button
-            onClick={() => onBoardingOpen(true)}
+            onClick={() => router.push("/onboarding/retry")}
             className="group relative w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all duration-300 text-slate-600 hover:text-slate-900 hover:bg-gradient-to-r hover:from-gray-50 hover:via-white hover:to-gray-50 hover:shadow-md hover:shadow-gray-200/20 hover:scale-102 overflow-hidden"
           >
             <IconRefreshCw className="w-5 h-5 text-slate-500 transition-all duration-300 group-hover:text-indigo-500 group-hover:rotate-180 group-hover:scale-110" />

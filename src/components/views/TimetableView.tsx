@@ -204,7 +204,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ timeTable, onRefre
           ) : (
             <div className="flex items-center justify-center h-96">
               <div className="text-center animate-fade-in">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-slate-100 to-gray-200 rounded-full flex items-center justify-center shadow-lg animate-pulse-glow">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-slate-100 to-gray-200 rounded-full flex items-center justify-center shadow-lg ">
                   <div className="w-12 h-12 text-slate-400">
                     <IconCalendar />
                   </div>

@@ -45,15 +45,16 @@ const CoursePopover: React.FC<CoursePopoverProps> = ({
 }) => {
   if (!popover) return null;
   const { course } = popover;
+  console.log(popover);
   const isFavorite = course.is_favorite;
   return (
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="absolute z-30 w-64 p-3 bg-white rounded-xl shadow-2xl border border-slate-200/80 animate-fade-in"
+      className="absolute z-30 w-72 p-3 bg-white rounded-xl shadow-2xl border border-slate-200/80 animate-fade-in"
       style={{
-        top: popover.top,
-        left: popover.left,
+        top: popover.top - 170,
+        left: popover.left - 150,
         transform: "translate(-50%, -100%)",
       }}
     >
@@ -204,8 +205,15 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
       if (!containerRef.current || !targetElement) return;
       const cardRect = targetElement.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
-      const top = cardRect.top - containerRect.top + containerRef.current.scrollTop - 16;
-      const left = cardRect.left - containerRect.left + cardRect.width / 2;
+
+      // 스크롤 위치와 패딩, 보더 등까지 고려하여 컨테이너 내부 좌표로 정확히 계산
+      const scrollTop = containerRef.current.scrollTop;
+      const scrollLeft = containerRef.current.scrollLeft;
+
+      console.log(cardRect.top, containerRect.top, scrollTop);
+      const top = cardRect.top - containerRect.top + scrollTop - 8; // 카드 위에 8px 여백
+      const left = cardRect.left - containerRect.left + scrollLeft + cardRect.width / 2; // 카드 중앙
+
       setPopover({ key: cardKey, top, left, course });
     }, 400);
   };
@@ -320,7 +328,7 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
             {Object.keys(coursesByCategory).length > 0 ? (
               <div className="space-y-6">
                 {Object.entries(coursesByCategory).map(([category, courses]) => (
-                  <div key={category} className="animate-fade-in">
+                  <div key={category} className="animate-fade-in relative">
                     <h4 className="font-bold text-slate-700 mb-3 pb-2 border-b border-slate-200">
                       {category} ({courses.length}개 과목)
                     </h4>
@@ -385,7 +393,7 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
               </div>
             ) : (
               <div className="text-center py-20 animate-fade-in">
-                <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-gray-200 mb-6 text-slate-400 shadow-lg animate-pulse-glow">
+                <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-gray-200 mb-6 text-slate-400 shadow-lg ">
                   <IconSearch className="w-10 h-10" />
                 </div>
                 <h4 className="text-xl font-bold text-slate-600 mb-2">과목을 찾을 수 없습니다.</h4>

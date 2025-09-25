@@ -36,7 +36,7 @@ export const OnboardingRestartModal: React.FC<OnboardingRestartModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 w-screen h-screen flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 w-screen h-screen flex backdrop-blur-xs items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative z-[1000]">
         {/* Close button */}
         <button

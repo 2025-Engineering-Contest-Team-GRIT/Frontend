@@ -453,7 +453,7 @@ const PreferencesStep = ({
           </div>
         </div>
 
-        <div>
+        <div className="text-slate-700">
           <button
             onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
             className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors"
@@ -636,10 +636,10 @@ const AnalysisStep = ({
       interval = setInterval(() => {
         setProgress((prev) => {
           if (stage === 0 && prev < 33) {
-            return prev + 4;
+            return prev + 3;
           }
           if (stage === 1 && prev < 66) {
-            return prev + 4;
+            return prev + 2;
           }
           if (stage === 2 && prev < 70) {
             return prev + 3;
@@ -838,7 +838,7 @@ export const OnboardingScreen = ({
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-300/40 to-purple-400/30 rounded-full blur-3xl animate-blob"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-300/40 to-pink-400/30 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-cyan-300/20 rounded-full blur-3xl animate-pulse-glow"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-cyan-300/20 rounded-full blur-3xl "></div>
 
         {/* Floating elements */}
         <div className="absolute top-20 right-20 w-4 h-4 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full opacity-60 animate-float"></div>

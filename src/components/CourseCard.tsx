@@ -66,7 +66,7 @@ export const CourseCard = React.forwardRef<
         ${isDimmed ? "opacity-20 hover:opacity-100" : "opacity-100"}
         ${
           isSelected
-            ? `scale-105 shadow-2xl z-20 bg-white border-blue-500`
+            ? `scale-102 shadow-2xl z-20 bg-white border-blue-500`
             : `hover:shadow-md hover:-translate-y-1 ${style.border} ${style.bg}`
         }`}
     >
