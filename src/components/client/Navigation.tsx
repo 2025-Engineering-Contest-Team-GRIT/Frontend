@@ -11,8 +11,6 @@ import {
   IconMortarBoard,
   IconRefreshCw,
 } from "@/components/common";
-import { OnboardingRestartModal } from "@/components/OnboardingRestartModal";
-import { useAuth } from "@/hooks/useStore";
 
 interface NavigationItem {
   href: string;
@@ -44,39 +42,9 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-export const CSRNavigation = () => {
+export const CSRNavigation = (onBoardingOpen: any) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { authInfo } = useAuth();
-  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleOnboardingRestart = async (password: string) => {
-    setIsLoading(true);
-    setError("");
-
-    try {
-      // 세션 스토리지에 임시 비밀번호 저장
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("onboarding_temp_pw", password);
-      }
-
-      // 온보딩 페이지로 이동
-      router.push("/onboarding");
-      setIsOnboardingModalOpen(false);
-    } catch (err) {
-      setError("온보딩 재시작 중 오류가 발생했습니다. 다시 시도해주세요.");
-      console.error("Onboarding restart error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsOnboardingModalOpen(false);
-    setError("");
-  };
 
   return (
     <>
@@ -132,7 +100,7 @@ export const CSRNavigation = () => {
             설정
           </div>
           <button
-            onClick={() => setIsOnboardingModalOpen(true)}
+            onClick={() => onBoardingOpen(true)}
             className="group relative w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all duration-300 text-slate-600 hover:text-slate-900 hover:bg-gradient-to-r hover:from-gray-50 hover:via-white hover:to-gray-50 hover:shadow-md hover:shadow-gray-200/20 hover:scale-102 overflow-hidden"
           >
             <IconRefreshCw className="w-5 h-5 text-slate-500 transition-all duration-300 group-hover:text-indigo-500 group-hover:rotate-180 group-hover:scale-110" />
@@ -141,15 +109,6 @@ export const CSRNavigation = () => {
           </button>
         </div>
       </nav>
-
-      {/* 온보딩 재시작 모달 */}
-      <OnboardingRestartModal
-        isOpen={isOnboardingModalOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleOnboardingRestart}
-        isLoading={isLoading}
-        error={error}
-      />
     </>
   );
 };
