@@ -66,16 +66,104 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // 현재 학기보다 이전에 있는 추천 과목들을 현재 학기 이후로 이동시키는 함수
+  const adjustRecommendedCourses = React.useMemo(() => {
+    const adjustedRoadmap = JSON.parse(JSON.stringify(roadmap)) as Semester[];
+
+    // 현재 학년/학기를 숫자로 변환 (비교용)
+    const currentPeriod = currentGrade * 10 + currentSemester;
+
+    // 이전 학기에서 추천 과목들을 찾아서 제거
+    const recommendedCoursesToMove: Array<{
+      course: Course;
+      originalYear: number;
+      originalSemester: number;
+    }> = [];
+
+    adjustedRoadmap.forEach((semester) => {
+      const semesterPeriod = semester.year * 10 + semester.semester;
+      if (semesterPeriod < currentPeriod) {
+        // 현재 학기보다 이전 학기에서 추천 과목 찾기
+        const recommendedCourses = semester.courses.filter(
+          (course) => course.status === "RECOMMENDED" || course.status === "AI 추천",
+        );
+
+        // 원래 학년/학기 정보와 함께 저장
+        recommendedCourses.forEach((course) => {
+          recommendedCoursesToMove.push({
+            course,
+            originalYear: semester.year,
+            originalSemester: semester.semester,
+          });
+        });
+
+        // 원래 학기에서 추천 과목들 제거
+        semester.courses = semester.courses.filter(
+          (course) => course.status !== "RECOMMENDED" && course.status !== "AI 추천",
+        );
+        // 학점도 재계산
+        semester.totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
+      }
+    });
+
+    // 추천 과목들을 현재 학기 이후의 적절한 학기로 배치
+    recommendedCoursesToMove.forEach(({ course, originalYear, originalSemester }) => {
+      // 원래 학년/학기에서 현재 학년/학기로의 차이 계산
+      const yearDiff = currentGrade - originalYear;
+      let targetYear = originalYear + yearDiff;
+      let targetSemester = originalSemester;
+
+      // 현재 학기보다 같거나 이후로 배치
+      const targetPeriod = targetYear * 10 + targetSemester;
+      if (targetPeriod <= currentPeriod) {
+        targetYear = currentGrade + 1; // 다음 학년으로
+      }
+
+      // 목표 학기 찾기 또는 생성
+      let targetSemesterObj = adjustedRoadmap.find(
+        (s) => s.year === targetYear && s.semester === targetSemester,
+      );
+
+      if (!targetSemesterObj) {
+        // 해당 학기가 없으면 생성
+        targetSemesterObj = {
+          year: targetYear,
+          semester: targetSemester,
+          totalCredits: 0,
+          courses: [],
+        };
+        adjustedRoadmap.push(targetSemesterObj);
+      }
+
+      // 과목을 새로운 학기로 이동
+      targetSemesterObj.courses.push(course);
+      targetSemesterObj.totalCredits += course.credits;
+    });
+
+    // 빈 학기 제거 (과목이 없는 학기)
+    const filteredRoadmap = adjustedRoadmap.filter((semester) => semester.courses.length > 0);
+
+    // 학년/학기 순으로 정렬
+    filteredRoadmap.sort((a, b) => {
+      if (a.year === b.year) {
+        return a.semester - b.semester;
+      }
+      return a.year - b.year;
+    });
+
+    return filteredRoadmap;
+  }, [roadmap, currentGrade, currentSemester]);
+
   // 모든 코스를 courseId로 매핑하기 위한 Map 생성
   const courseMap = React.useMemo(() => {
     const map = new Map<number, Course>();
-    roadmap.forEach((semester) => {
+    adjustRecommendedCourses.forEach((semester) => {
       semester.courses.forEach((course) => {
         map.set(course.courseId, course);
       });
     });
     return map;
-  }, [roadmap]);
+  }, [adjustRecommendedCourses]);
 
   // 특정 과목의 모든 선수과목들을 재귀적으로 찾는 함수
   const getAllPrerequisites = useCallback(
@@ -129,12 +217,12 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
   // coursesByYearSemester: { '1-1': Course[], ... }
   const coursesByYearSemester = React.useMemo(() => {
     const acc: Record<string, Course[]> = {};
-    roadmap.forEach((semester) => {
+    adjustRecommendedCourses.forEach((semester) => {
       const key = `${semester.year}-${semester.semester}`;
       acc[key] = semester.courses;
     });
     return acc;
-  }, [roadmap]);
+  }, [adjustRecommendedCourses]);
 
   // Flex 기반 위치 계산: 각 (year, semester) column의 x, 각 과목의 y를 계산
   useLayoutEffect(() => {
@@ -246,7 +334,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               {(() => {
                 let total = 0;
                 let completed = 0;
-                roadmap.forEach((semester) => {
+                adjustRecommendedCourses.forEach((semester) => {
                   semester.courses.forEach((course) => {
                     total++;
                     if (course.status === "COMPLETED") completed++;
