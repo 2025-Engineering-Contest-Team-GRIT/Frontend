@@ -150,23 +150,27 @@ const DataIntegrationStep = ({
   };
 
   return (
-    <Card className="max-w-2xl min-w-2xl container mx-auto p-8">
+    <Card className="max-w-2xl min-w-2xl container mx-auto p-8 backdrop-blur-sm bg-white/90 shadow-2xl border border-white/20 animate-fade-in">
       <div className="text-center mb-8">
-        <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mb-4 shadow-lg">
+        <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-blue-600 mb-4 shadow-lg animate-bounce-slow">
           <IconLock className="w-8 h-8" />
         </div>
-        <h2 className="text-3xl font-extrabold text-slate-800 mb-2">데이터 연동 안내</h2>
-        <p className="text-slate-500 mt-2 mx-auto text-base">
-          <span className="font-semibold text-blue-600">'한성 길라잡이'</span>는 아래 정보를
-          바탕으로 맞춤형 서비스를 제공합니다.
+        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          데이터 연동 안내
+        </h2>
+        <p className="text-slate-500 mt-2 mx-auto text-base leading-relaxed">
+          <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            '한성 길라잡이'
+          </span>
+          는 아래 정보를 바탕으로 맞춤형 서비스를 제공합니다.
           <br />
           아래 정보를 안전하게 연동합니다.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 mb-8">
-        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 bg-blue-50">
-          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow">
+        <div className="flex items-center gap-4 p-4 rounded-xl border-2 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border-blue-100 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow-md">
             <IconUser className="w-6 h-6" />
           </div>
           <div>
@@ -174,8 +178,8 @@ const DataIntegrationStep = ({
             <p className="text-sm text-slate-500">이름, 학번, 학과, 학년</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 bg-blue-50">
-          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow">
+        <div className="flex items-center gap-4 p-4 rounded-xl border-2 bg-gradient-to-r from-purple-50/80 to-pink-50/80 border-purple-100 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in animation-delay-200">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-purple-600 bg-white shadow-md">
             <IconBook className="w-6 h-6" />
           </div>
           <div>
@@ -183,8 +187,8 @@ const DataIntegrationStep = ({
             <p className="text-sm text-slate-500">이수한 과목, 성적, 학점</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 bg-blue-50">
-          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-blue-600 bg-white shadow">
+        <div className="flex items-center gap-4 p-4 rounded-xl border-2 bg-gradient-to-r from-green-50/80 to-emerald-50/80 border-green-100 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in animation-delay-400">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-green-600 bg-white shadow-md">
             <IconCalendar className="w-6 h-6" />
           </div>
           <div>
@@ -200,13 +204,13 @@ const DataIntegrationStep = ({
           type="checkbox"
           checked={policyChecked}
           onChange={(e) => setPolicyChecked(e.target.checked)}
-          className="accent-blue-600 w-5 h-5 rounded border-slate-300 focus:ring-2 focus:ring-blue-400"
+          className="accent-blue-600 w-5 h-5 rounded border-slate-300 focus:ring-2 focus:ring-blue-400 transition-all duration-200"
         />
         <label htmlFor="policy-check" className="text-xs text-slate-600 select-none">
           <button
             type="button"
             onClick={onOpenPolicy}
-            className="text-blue-600 hover:underline font-medium mr-1"
+            className="text-blue-600 hover:text-purple-600 hover:underline font-medium mr-1 transition-all duration-200"
           >
             개인정보 수집 및 이용 동의서
           </button>
@@ -214,12 +218,16 @@ const DataIntegrationStep = ({
         </label>
       </div>
 
-      {error && <div className="text-red-500 text-sm text-center mb-4">{error}</div>}
+      {error && (
+        <div className="text-red-500 text-sm text-center mb-4 p-3 bg-red-50 rounded-lg border border-red-200 animate-pop">
+          {error}
+        </div>
+      )}
 
       <Button
         onClick={handleFetch}
         variant="primary"
-        className="w-full font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 text-lg"
+        className="w-full font-bold py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/30 hover:shadow-purple-500/30 flex items-center justify-center gap-2 text-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         disabled={isLoading || !policyChecked}
       >
         {isLoading ? (
@@ -825,24 +833,37 @@ export const OnboardingScreen = ({
       className={`min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex flex-col relative overflow-hidden ${fadeIn}`}
     >
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {/* Background decoration */}
+
+      {/* Enhanced Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-300/40 to-purple-400/30 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-300/40 to-pink-400/30 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-cyan-300/20 rounded-full blur-3xl animate-pulse-glow"></div>
+
+        {/* Floating elements */}
+        <div className="absolute top-20 right-20 w-4 h-4 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full opacity-60 animate-float"></div>
+        <div className="absolute bottom-32 left-32 w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full opacity-50 animate-float animation-delay-1000"></div>
+        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full opacity-40 animate-float animation-delay-3000"></div>
       </div>
 
       {/* Header */}
       <header className="relative z-10 flex justify-between items-center p-4 sm:p-6">
-        <div className="flex items-center gap-2 text-slate-700">
-          <IconCompass />
-          <span className="font-bold text-lg">한성 길라잡이</span>
+        <div className="flex items-center gap-3 text-slate-700 animate-fade-in">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-200 rounded-xl flex items-center justify-center shadow-lg">
+            <IconCompass className="w-6 h-6 text-blue-600" />
+          </div>
+          <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            한성 길라잡이
+          </span>
         </div>
       </header>
 
       {/* Main content */}
       <main className="relative z-10 flex-1 flex flex-col justify-center p-4 sm:p-6">
-        <ProgressIndicator currentStep={step} />
-        {renderStep()}
+        <div className="animate-fade-up">
+          <ProgressIndicator currentStep={step} />
+        </div>
+        <div className="animate-fade-in animation-delay-200">{renderStep()}</div>
       </main>
 
       {/* Modals */}

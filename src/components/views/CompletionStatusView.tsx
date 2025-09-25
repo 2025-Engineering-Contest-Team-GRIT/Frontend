@@ -234,167 +234,192 @@ export const CompletionStatusView: React.FC<CompletionStatusViewProps> = ({
 
   return (
     <div ref={containerRef} className="p-6 h-full overflow-y-auto relative animate-fade-in">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <div className="w-8 h-8 flex items-center justify-center bg-teal-100 text-teal-600 rounded-lg animate-pop">
-              <IconPieChart />
-            </div>
-            <span>이수 현황</span>
-          </h2>
-          <p className="text-slate-500 mt-1">
-            전체 전공 및 교양 과목 대비 이수 현황을 확인해보세요.
-          </p>
-        </div>
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-teal-200/30 to-cyan-300/20 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute top-20 -left-20 w-48 h-48 bg-gradient-to-br from-blue-200/30 to-indigo-300/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-gradient-to-br from-purple-200/30 to-violet-300/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
       </div>
 
-      <div className="mt-6 space-y-6">
-        <Card className="p-6 animate-fade-in">
-          <h3 className="font-bold text-slate-700 mb-2">
-            진행률 ({progressData.completed} / {progressData.total})
-          </h3>
-          <ProgressBar
-            value={progressData.completed}
-            max={progressData.total}
-            className="mb-6"
-            showLabel
-          />
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
-            {Object.entries(progressData.byCategory).map(([category, data]) => (
-              <div
-                key={category}
-                className="p-4 bg-slate-50 rounded-xl cursor-pointer transition-all hover:bg-white hover:shadow-lg hover:-translate-y-1 border border-slate-200/80 animate-pop"
-              >
-                <p className="font-semibold text-slate-500">{category}</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {data.completed} / {data.total}
-                  <span className="text-base font-medium ml-1">과목</span>
-                </p>
+      <div className="relative z-10">
+        <div className="flex justify-between items-start animate-fade-in">
+          <div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-3">
+              <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-teal-100 to-cyan-200 text-teal-600 rounded-xl shadow-lg animate-bounce-slow">
+                <IconPieChart />
               </div>
-            ))}
+              <span>이수 현황</span>
+            </h2>
+            <p className="text-slate-500 mt-2 text-lg">
+              전체 전공 및 교양 과목 대비 이수 현황을 확인해보세요.
+            </p>
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div className="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-lg animate-pop">
-              {tabs.map((tab) => (
-                <TabButton
-                  key={tab.id}
-                  label={tab.label}
-                  isActive={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                />
-              ))}
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <IconSearch className="w-4 h-4 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="과목명으로 검색..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        <div className="mt-8 space-y-8">
+          <Card className="p-8 backdrop-blur-sm bg-white/90 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300 animate-fade-up">
+            <h3 className="font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent text-xl mb-4">
+              전체 진행률 ({progressData.completed} / {progressData.total})
+            </h3>
+            <div className="mb-8">
+              <ProgressBar
+                value={progressData.completed}
+                max={progressData.total}
+                className="mb-2 h-4"
+                showLabel
               />
             </div>
-          </div>
-
-          {Object.keys(coursesByCategory).length > 0 ? (
-            <div className="space-y-6">
-              {Object.entries(coursesByCategory).map(([category, courses]) => (
-                <div key={category} className="animate-fade-in">
-                  <h4 className="font-bold text-slate-700 mb-3 pb-2 border-b border-slate-200">
-                    {category} ({courses.length}개 과목)
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {courses.map((item) => {
-                      const isCompleted = item.status === "completed";
-                      const isFavorite = item.is_favorite;
-                      const bgColor = isCompleted ? "bg-indigo-100" : "bg-slate-100";
-                      const textColor = isCompleted ? "text-indigo-900" : "text-slate-600";
-                      const cardKey = String(item.course.id);
-                      return (
-                        <div
-                          key={cardKey}
-                          onMouseEnter={(e) => handleMouseEnter(e, item, cardKey)}
-                          onMouseLeave={handleMouseLeave}
-                          className="relative rounded-lg transition-all duration-200 shadow-sm animate-pop"
-                        >
-                          <div
-                            className={`p-3 rounded-lg h-full flex flex-col justify-between ${bgColor} ${textColor}`}
-                          >
-                            <div>
-                              <div className="flex justify-between items-start gap-2">
-                                <p className="font-bold flex-1 pr-6">{item.course.course_name}</p>
-                                <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                                  {isFavorite && (
-                                    <span title="관심 과목" className="text-amber-400">
-                                      <IconStar className="w-[14px] h-[14px] fill-current" />
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-[11px] font-medium">
-                              <span className="px-2 py-0.5 rounded-full bg-white/70">
-                                {item.grade}학년{" "}
-                                {item.semester === "FIRST"
-                                  ? "1학기"
-                                  : item.semester === "SECOND"
-                                    ? "2학기"
-                                    : "여름학기"}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full bg-white/70">
-                                {item.course.credits}학점
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full bg-white/70">
-                                {item.course_type}
-                              </span>
-                              {item.track_id && (
-                                <span className="bg-slate-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                  <IconMapPin className="w-3 h-3" />
-                                  {trackList[item.track_id - 1]}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-center">
+              {Object.entries(progressData.byCategory).map(([category, data], index) => (
+                <div
+                  key={category}
+                  className="p-6 bg-gradient-to-br from-slate-50/80 to-gray-100/80 rounded-2xl cursor-pointer transition-all duration-300 hover:bg-white hover:shadow-xl hover:-translate-y-2 border border-slate-200/60 backdrop-blur-sm animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <p className="font-semibold text-slate-600 text-sm mb-2">{category}</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent mb-1">
+                    {data.completed} / {data.total}
+                  </p>
+                  <p className="text-sm text-slate-500 font-medium">과목</p>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-16 text-slate-500 animate-fade-in">
-              <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-slate-100 mb-4 text-slate-400">
-                <IconSearch className="w-8 h-8" />
-              </div>
-              <h4 className="text-lg font-semibold text-slate-600">과목을 찾을 수 없습니다.</h4>
-              <p className="text-sm mt-1">필터 조건을 변경하거나 검색어를 확인해주세요.</p>
-            </div>
-          )}
-        </Card>
-      </div>
+          </Card>
 
-      <CoursePopover
-        popover={popover}
-        onSetAsFavorite={(courseId) => handleToggleFavoriteWithToast(courseId, false)}
-        onUnsetAsFavorite={(courseId) => handleToggleFavoriteWithToast(courseId, true)}
-        onMouseEnter={handlePopoverMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      />
-      {toast && (
-        <div className="animate-fade-in">
-          <div
-            className={`fixed bottom-8 right-8 z-50 px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 ${toast.type === "success" ? "bg-emerald-600 text-white" : toast.type === "error" ? "bg-rose-600 text-white" : "bg-blue-600 text-white"}`}
-          >
-            <span className="font-semibold">{toast.message}</span>
-          </div>
+          <Card className="p-8 backdrop-blur-sm bg-white/90 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300 animate-fade-up animation-delay-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
+              <div className="flex flex-wrap gap-2 bg-gradient-to-r from-slate-100/80 to-gray-100/80 p-2 rounded-xl backdrop-blur-sm shadow-inner">
+                {tabs.map((tab, index) => (
+                  <div
+                    key={tab.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <TabButton
+                      label={tab.label}
+                      isActive={activeTab === tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <IconSearch className="w-5 h-5 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="과목명으로 검색..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-full pl-12 pr-4 py-3 border border-slate-300/60 rounded-xl text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent backdrop-blur-sm bg-white/80 transition-all duration-200 shadow-sm hover:shadow-md"
+                />
+              </div>
+            </div>
+
+            {Object.keys(coursesByCategory).length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(coursesByCategory).map(([category, courses]) => (
+                  <div key={category} className="animate-fade-in">
+                    <h4 className="font-bold text-slate-700 mb-3 pb-2 border-b border-slate-200">
+                      {category} ({courses.length}개 과목)
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {courses.map((item) => {
+                        const isCompleted = item.status === "completed";
+                        const isFavorite = item.is_favorite;
+                        const bgColor = isCompleted ? "bg-indigo-100" : "bg-slate-100";
+                        const textColor = isCompleted ? "text-indigo-900" : "text-slate-600";
+                        const cardKey = String(item.course.id);
+                        return (
+                          <div
+                            key={cardKey}
+                            onMouseEnter={(e) => handleMouseEnter(e, item, cardKey)}
+                            onMouseLeave={handleMouseLeave}
+                            className="relative rounded-lg transition-all duration-200 shadow-sm animate-pop"
+                          >
+                            <div
+                              className={`p-3 rounded-lg h-full flex flex-col justify-between ${bgColor} ${textColor}`}
+                            >
+                              <div>
+                                <div className="flex justify-between items-start gap-2">
+                                  <p className="font-bold flex-1 pr-6">{item.course.course_name}</p>
+                                  <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                                    {isFavorite && (
+                                      <span title="관심 과목" className="text-amber-400">
+                                        <IconStar className="w-[14px] h-[14px] fill-current" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-[11px] font-medium">
+                                <span className="px-2 py-0.5 rounded-full bg-white/70">
+                                  {item.grade}학년{" "}
+                                  {item.semester === "FIRST"
+                                    ? "1학기"
+                                    : item.semester === "SECOND"
+                                      ? "2학기"
+                                      : "여름학기"}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-white/70">
+                                  {item.course.credits}학점
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-white/70">
+                                  {item.course_type}
+                                </span>
+                                {item.track_id && (
+                                  <span className="bg-slate-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <IconMapPin className="w-3 h-3" />
+                                    {trackList[item.track_id - 1]}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 animate-fade-in">
+                <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-gray-200 mb-6 text-slate-400 shadow-lg animate-pulse-glow">
+                  <IconSearch className="w-10 h-10" />
+                </div>
+                <h4 className="text-xl font-bold text-slate-600 mb-2">과목을 찾을 수 없습니다.</h4>
+                <p className="text-base text-slate-500">
+                  필터 조건을 변경하거나 검색어를 확인해주세요.
+                </p>
+              </div>
+            )}
+          </Card>
         </div>
-      )}
+
+        <CoursePopover
+          popover={popover}
+          onSetAsFavorite={(courseId) => handleToggleFavoriteWithToast(courseId, false)}
+          onUnsetAsFavorite={(courseId) => handleToggleFavoriteWithToast(courseId, true)}
+          onMouseEnter={handlePopoverMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        />
+        {toast && (
+          <div className="animate-fade-in">
+            <div
+              className={`fixed bottom-8 right-8 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-sm border border-white/20 transition-all duration-300 transform hover:scale-105 ${
+                toast.type === "success"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                  : toast.type === "error"
+                    ? "bg-gradient-to-r from-rose-500 to-red-600 text-white"
+                    : "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+              }`}
+            >
+              <span className="font-semibold">{toast.message}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -3,12 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth, useSimulation } from "@/hooks/useStore";
 import { usePlanBasicInfo, useCourses } from "@/hooks/useData";
-import type {
-  extendedShortCourse,
-  CourseListItem,
-  shortTrackInfo,
-  TrackProgress,
-} from "@/types";
+import type { extendedShortCourse, CourseListItem, shortTrackInfo, TrackProgress } from "@/types";
 import { Card } from "../common";
 import { Button } from "../Button";
 import { Toast } from "../Toast";
@@ -130,24 +125,30 @@ const AddCourseModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
     >
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg flex flex-col gap-6 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-2xl flex flex-col gap-8 animate-fade-up border-2 border-white/50">
         <div className="text-center">
-          <h4 className="font-bold text-slate-800 text-xl mb-2">{course.course_name}</h4>
-          <p className="text-slate-600 text-sm">과목을 수강 계획에 추가합니다</p>
+          <h4 className="font-bold text-2xl mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+            {course.course_name}
+          </h4>
+          <p className="text-slate-600 text-base">과목을 수강 계획에 추가합니다</p>
+          <div className="mt-4 h-1 w-16 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-auto"></div>
         </div>
 
         {/* 트랙 선택 */}
         {availableTracks.length > 1 && (
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-3">트랙 선택</label>
-            <div className="grid grid-cols-1 gap-2">
+            <label className="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              트랙 선택
+            </label>
+            <div className="grid grid-cols-1 gap-3">
               {availableTracks.map((track) => (
                 <button
                   key={track.track_id}
@@ -158,13 +159,26 @@ const AddCourseModal: React.FC<{
                       setSelectedTrackId(track.track_id);
                     }
                   }}
-                  className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                  className={`group p-4 rounded-xl border-2 transition-all duration-300 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-300/50 ${
                     selectedTrackId === track.track_id
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                      ? "border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-lg scale-105"
+                      : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:scale-102"
                   }`}
                 >
-                  {track.track_name}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 transition-all ${
+                        selectedTrackId === track.track_id
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-slate-300"
+                      }`}
+                    >
+                      {selectedTrackId === track.track_id && (
+                        <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                      )}
+                    </div>
+                    <span className="font-semibold">{track.track_name}</span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -173,11 +187,14 @@ const AddCourseModal: React.FC<{
 
         {/* 학년 선택 */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-3">
+          <label className="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             학년 선택
-            <span className="text-blue-600 font-normal ml-2">(권장: {course.open_grade}학년)</span>
+            <span className="text-blue-600 font-normal ml-2 text-sm bg-blue-100 px-2 py-1 rounded-lg">
+              권장: {course.open_grade}학년
+            </span>
           </label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((year) => (
               <button
                 key={year}
@@ -188,10 +205,10 @@ const AddCourseModal: React.FC<{
                     setSelectedYear(year);
                   }
                 }}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-300 ${
+                className={`p-4 rounded-xl border-2 transition-all duration-300 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-green-300/50 ${
                   selectedYear === year
-                    ? "border-green-500 bg-green-50 text-green-700"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    ? "border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 shadow-lg scale-105"
+                    : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:scale-102"
                 } ${year === course.open_grade ? "ring-2 ring-blue-200 ring-opacity-50" : ""}`}
               >
                 {year}학년
@@ -202,13 +219,14 @@ const AddCourseModal: React.FC<{
 
         {/* 학기 선택 */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-3">
+          <label className="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
             학기 선택
-            <span className="text-red-600 font-normal ml-2">
-              (필수: {course.open_semester === "FIRST" ? "1학기" : "2학기"})
+            <span className="text-red-600 font-normal ml-2 text-sm bg-red-100 px-2 py-1 rounded-lg">
+              필수: {course.open_semester === "FIRST" ? "1학기" : "2학기"}
             </span>
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {[
               { value: 1, label: "1학기" },
               { value: 2, label: "2학기" },
@@ -216,9 +234,9 @@ const AddCourseModal: React.FC<{
               <button
                 key={sem.value}
                 disabled={true} // 학기는 변경 불가
-                className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium cursor-not-allowed ${
+                className={`p-4 rounded-xl border-2 transition-all duration-300 text-sm font-bold cursor-not-allowed ${
                   selectedSemester === sem.value
-                    ? "border-orange-500 bg-orange-50 text-orange-700"
+                    ? "border-orange-500 bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 shadow-lg"
                     : "border-slate-200 bg-slate-50 text-slate-400"
                 }`}
               >
@@ -227,23 +245,33 @@ const AddCourseModal: React.FC<{
               </button>
             ))}
           </div>
-          <p className="text-xs text-slate-500 mt-2 text-center">
-            * 학기는 과목 특성상 변경할 수 없습니다
+          <p className="text-xs text-slate-500 mt-3 text-center bg-slate-100 py-2 rounded-lg">
+            ⚠️ 학기는 과목 특성상 변경할 수 없습니다
           </p>
         </div>
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-4 mt-8">
           <Button
             onClick={() => onAdd(selectedTrackId, selectedYear, selectedSemester)}
             variant="primary"
-            className="flex-1 py-3 text-base font-medium"
+            className="flex-1 py-4 text-base font-bold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
-            추가하기
+            <span className="flex items-center justify-center gap-2">
+              추가하기
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </span>
           </Button>
           <Button
             onClick={onClose}
             variant="secondary"
-            className="flex-1 py-3 text-base font-medium"
+            className="flex-1 py-4 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             취소
           </Button>
@@ -840,17 +868,24 @@ export const SimulationView: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="h-screen flex relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-300 opacity-15 rounded-full blur-3xl animate-blob1" />
+        <div className="absolute -bottom-32 right-0 w-96 h-96 bg-indigo-300 opacity-15 rounded-full blur-3xl animate-blob2" />
+        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-purple-300 opacity-10 rounded-full blur-3xl animate-float" />
+      </div>
+
       {/* 메인 컨텐츠 영역 */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {/* 헤더 */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="bg-white/80 backdrop-blur-lg border-b border-slate-200/50 px-6 py-4 animate-fade-down">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center animate-pulse-glow">
                   <svg
-                    className="w-5 h-5 text-white"
+                    className="w-6 h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -863,24 +898,27 @@ export const SimulationView: React.FC = () => {
               </h1>
 
               {/* 색상 범례 */}
-              <div className="hidden md:flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-purple-200 border border-purple-300 rounded"></div>
+              <div
+                className="hidden md:flex items-center gap-4 text-xs animate-fade-in"
+                style={{ animationDelay: "0.3s" }}
+              >
+                <div className="flex items-center gap-2 px-3 py-1 bg-purple-50 rounded-full">
+                  <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
                   <span className="text-purple-700 font-medium">전공필수</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-200 border border-blue-300 rounded"></div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
                   <span className="text-blue-700 font-medium">전공선택</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-200 border border-green-300 rounded"></div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full">
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-green-700 font-medium">전공기초</span>
                 </div>
               </div>
             </div>
 
             {simulation.isModified && (
-              <div className="text-sm text-amber-600 font-medium flex items-center gap-1">
+              <div className="text-sm text-amber-600 font-medium flex items-center gap-2 animate-fade-in">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
                 변경사항이 있습니다
               </div>
@@ -889,17 +927,26 @@ export const SimulationView: React.FC = () => {
         </div>
 
         {/* 로드맵 영역 */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">학년별 수강 계획</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="flex-1 overflow-auto p-6 animate-fade-in">
+          <div className="mb-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500 mb-2">
+                학년별 수강 계획
+              </h2>
+              <div className="h-1 w-16 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-auto animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8">
               {[1, 2, 3, 4].map((year) => (
-                <div key={year} className="space-y-4">
+                <div
+                  key={year}
+                  className="space-y-4 animate-fade-up"
+                  style={{ animationDelay: `${year * 0.1}s` }}
+                >
                   <div className="text-center">
-                    <h3 className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <h3 className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       {year}학년
                     </h3>
-                    <div className="mt-1 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-8"></div>
+                    <div className="mt-2 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-8 animate-pulse"></div>
                   </div>
                   {[1, 2].map((semester) => {
                     const key = `${year}-${semester}`;
@@ -907,15 +954,15 @@ export const SimulationView: React.FC = () => {
                     return (
                       <Card
                         key={semester}
-                        className="p-4 bg-gradient-to-br from-white to-slate-50 border-slate-300 shadow-sm"
+                        className="p-5 bg-white/80 backdrop-blur-md border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all duration-300 group"
                       >
-                        <h4 className="font-semibold text-slate-700 mb-3 text-center bg-slate-100 rounded-lg py-2">
+                        <h4 className="font-bold text-slate-700 mb-4 text-center bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl py-3 group-hover:from-blue-50 group-hover:to-purple-50 transition-all duration-300">
                           <span className="text-lg">{semester}학기</span>
-                          <span className="ml-2 text-sm text-slate-600">
-                            ({courses.reduce((sum, c) => sum + c.credits, 0)}학점)
+                          <span className="ml-2 text-sm text-slate-600 bg-white px-2 py-1 rounded-lg">
+                            {courses.reduce((sum, c) => sum + c.credits, 0)}학점
                           </span>
                         </h4>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {courses.map((course) => {
                             const isFromSimulation = simulation.roadmapCourses.some(
                               (sc) => sc.course_code === course.course_code,
@@ -929,43 +976,49 @@ export const SimulationView: React.FC = () => {
                             return (
                               <div
                                 key={course.course_code}
-                                className={`p-3 rounded-lg border text-sm transition-all duration-200 ${
+                                className={`p-4 rounded-xl border-2 text-sm transition-all duration-300 hover:scale-[1.02] ${
                                   isFromSimulation
-                                    ? `${courseTypeStyle.bg} ${courseTypeStyle.border} shadow-sm`
-                                    : `bg-white border-slate-200 hover:${courseTypeStyle.bg} hover:${courseTypeStyle.border}`
+                                    ? `${courseTypeStyle.bg} ${courseTypeStyle.border} shadow-md hover:shadow-lg`
+                                    : `bg-white border-slate-200 hover:${courseTypeStyle.bg} hover:${courseTypeStyle.border} hover:shadow-md`
                                 }`}
                               >
-                                <div className="flex items-start justify-between mb-2">
-                                  <div className="font-medium text-slate-800 truncate flex-1">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="font-semibold text-slate-800 truncate flex-1 text-base">
                                     {course.course_name}
                                   </div>
                                   <div
-                                    className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${courseTypeStyle.badge} whitespace-nowrap`}
+                                    className={`ml-2 px-3 py-1 rounded-full text-xs font-bold ${courseTypeStyle.badge} whitespace-nowrap`}
                                   >
                                     {koreanType}
                                   </div>
                                 </div>
-                                <div className="text-xs text-slate-600 mb-2">
-                                  <span className="font-medium">{course.credits}학점</span>
+                                <div className="text-xs text-slate-600 mb-3 flex items-center gap-2">
+                                  <span className="font-bold text-sm text-indigo-600">
+                                    {course.credits}학점
+                                  </span>
                                   {trackName && (
                                     <>
-                                      <span className="mx-1">•</span>
-                                      <span>{trackName}</span>
+                                      <span className="text-slate-400">•</span>
+                                      <span className="bg-slate-100 px-2 py-1 rounded-lg">
+                                        {trackName}
+                                      </span>
                                     </>
                                   )}
                                   {isFromSimulation && (
                                     <>
-                                      <span className="mx-1">•</span>
-                                      <span className="text-blue-600 font-medium">시뮬레이션</span>
+                                      <span className="text-slate-400">•</span>
+                                      <span className="text-blue-600 font-bold bg-blue-100 px-2 py-1 rounded-lg">
+                                        시뮬레이션
+                                      </span>
                                     </>
                                   )}
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                   {/* 트랙 변경: 전공필수가 아닌 모든 과목에 대해 허용 */}
                                   {!koreanType.includes("전공필수") && (
                                     <button
                                       onClick={() => handleChangeTrack(course)}
-                                      className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
+                                      className="px-3 py-1.5 text-xs bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 hover:scale-105 transition-all duration-200 font-medium"
                                     >
                                       트랙변경
                                     </button>
@@ -976,7 +1029,7 @@ export const SimulationView: React.FC = () => {
                                       onClick={() =>
                                         handleRemoveCourse(course.course_code, course.course_name)
                                       }
-                                      className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
+                                      className="px-3 py-1.5 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-200 hover:scale-105 transition-all duration-200 font-medium"
                                     >
                                       제거
                                     </button>
@@ -995,15 +1048,18 @@ export const SimulationView: React.FC = () => {
           </div>
 
           {/* 수강 가능 과목 목록 */}
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-semibold text-slate-800">수강 가능한 과목</h2>
-              <div className="flex items-center gap-2 text-xs text-slate-600">
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
-                <span>클릭하여 로드맵에 추가</span>
+          <div className="animate-fade-up" style={{ animationDelay: "0.5s" }}>
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="h-0.5 bg-gradient-to-r from-transparent to-blue-400 flex-1 rounded-full"></div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500">
+                  수강 가능한 과목
+                </h2>
+                <p className="text-slate-500 text-sm mt-1">클릭하여 로드맵에 추가하세요</p>
               </div>
+              <div className="h-0.5 bg-gradient-to-l from-transparent to-purple-400 flex-1 rounded-full"></div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {simulation.availableCourses
                 .filter(
                   (course) =>
@@ -1015,36 +1071,47 @@ export const SimulationView: React.FC = () => {
                       (cc: CourseListItem) => cc.course.course_code === course.course_code,
                     ),
                 )
-                .map((course) => {
+                .map((course, index) => {
                   const courseTypeStyle = getCourseTypeStyle(course.course_type);
                   const koreanType = getCourseTypeInKorean(course.course_type);
 
                   return (
                     <div
                       key={course.course_code}
-                      className={`p-4 cursor-pointer hover:shadow-lg transition-all duration-200 rounded-lg border-2 ${courseTypeStyle.border} ${courseTypeStyle.bg} hover:scale-105`}
+                      className={`p-5 cursor-pointer hover:shadow-2xl transition-all duration-300 rounded-2xl border-2 ${courseTypeStyle.border} ${courseTypeStyle.bg} hover:scale-105 group animate-fade-up`}
+                      style={{ animationDelay: `${index * 0.05}s` }}
                       onClick={() => handleAddCourse(course)}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="font-semibold text-slate-800 truncate flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="font-bold text-slate-800 truncate flex-1 text-base leading-tight">
                           {course.course_name}
                         </div>
                         <div
-                          className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${courseTypeStyle.badge} whitespace-nowrap`}
+                          className={`ml-2 px-3 py-1 rounded-full text-xs font-bold ${courseTypeStyle.badge} whitespace-nowrap`}
                         >
                           {koreanType}
                         </div>
                       </div>
-                      <div className="text-sm text-slate-700 mb-2">
-                        <span className="font-bold text-lg">{course.credit}학점</span>
+                      <div className="text-sm text-slate-700 mb-3">
+                        <span className="font-bold text-xl text-indigo-600">
+                          {course.credit}학점
+                        </span>
                       </div>
-                      <div className="text-xs text-slate-600 mb-3">
-                        <span className="font-medium">{course.open_grade}학년</span>
-                        <span className="mx-1">•</span>
-                        <span>{course.open_semester === "FIRST" ? "1학기" : "2학기"}</span>
+                      <div className="text-xs text-slate-600 mb-4 flex items-center gap-2">
+                        <span className="font-medium bg-slate-100 px-2 py-1 rounded-lg">
+                          {course.open_grade}학년
+                        </span>
+                        <span className="text-slate-400">•</span>
+                        <span className="bg-slate-100 px-2 py-1 rounded-lg">
+                          {course.open_semester === "FIRST" ? "1학기" : "2학기"}
+                        </span>
                       </div>
-                      <div className="text-xs text-blue-600 font-medium flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="text-xs text-blue-600 font-bold flex items-center gap-2 group-hover:text-blue-700 transition-colors">
+                        <svg
+                          className="w-4 h-4 group-hover:scale-110 transition-transform"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
                           <path
                             fillRule="evenodd"
                             d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
@@ -1062,60 +1129,67 @@ export const SimulationView: React.FC = () => {
       </div>
 
       {/* 사이드바 - 졸업요건 및 버튼 */}
-      <div className="w-80 bg-white border-l border-slate-200 flex flex-col text-gray-500">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="font-semibold text-slate-800">졸업요건 진행률</h3>
-            <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+      <div className="w-80 bg-white/90 backdrop-blur-lg border-l border-slate-200/50 flex flex-col text-gray-500 relative z-10">
+        <div className="p-6 border-b border-slate-200/50">
+          <div className="flex items-center gap-3 mb-6 animate-fade-in">
+            <h3 className="font-bold text-slate-800 text-lg">졸업요건 진행률</h3>
+            <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
           </div>
           {graduationProgress && (
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>총 이수 학점</span>
-                  <span>
+            <div className="space-y-6 animate-fade-up">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200/50">
+                <div className="flex justify-between text-sm mb-2 font-medium">
+                  <span className="text-slate-700">총 이수 학점</span>
+                  <span className="text-indigo-700 font-bold">
                     {graduationProgress.totalSimulated}/{graduationProgress.totalRequired}
                   </span>
                 </div>
                 <ProgressBar
                   value={graduationProgress.totalSimulated}
                   max={graduationProgress.totalRequired}
-                  className="h-2"
+                  className="h-3 bg-indigo-200 rounded-full overflow-hidden"
                 />
+                <div className="text-xs text-slate-600 mt-2 text-center">
+                  {Math.round(
+                    (graduationProgress.totalSimulated / graduationProgress.totalRequired) * 100,
+                  )}
+                  % 완료
+                </div>
               </div>
-              {graduationProgress.trackProgress.map((track: TrackProgress) => (
+              {graduationProgress.trackProgress.map((track: TrackProgress, index) => (
                 <div
                   key={track.track_name}
-                  className="p-4 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-200"
+                  className="p-5 bg-gradient-to-br from-white to-slate-50 rounded-2xl border-2 border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
-                    <div className="w-3 h-3 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full"></div>
+                  <h4 className="font-bold text-slate-800 text-base mb-4 flex items-center gap-3">
+                    <div className="w-4 h-4 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-pulse"></div>
                     {track.track_name}
                   </h4>
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-green-700 flex items-center gap-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="font-bold text-green-700 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                           전공기초
                         </span>
-                        <span className="font-bold text-green-800">
+                        <span className="font-bold text-green-800 bg-green-100 px-2 py-1 rounded-lg">
                           {track.major_basic.completed_credits}/{track.major_basic.required_credits}
                         </span>
                       </div>
                       <ProgressBar
                         value={track.major_basic.completed_credits}
                         max={track.major_basic.required_credits}
-                        className="h-2 bg-green-200"
+                        className="h-2 bg-green-200 rounded-full overflow-hidden"
                       />
                     </div>
                     <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-purple-700 flex items-center gap-1">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="font-bold text-purple-700 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                           전공필수
                         </span>
-                        <span className="font-bold text-purple-800">
+                        <span className="font-bold text-purple-800 bg-purple-100 px-2 py-1 rounded-lg">
                           {track.major_required.completed_credits}/
                           {track.major_required.required_credits}
                         </span>
@@ -1123,16 +1197,16 @@ export const SimulationView: React.FC = () => {
                       <ProgressBar
                         value={track.major_required.completed_credits}
                         max={track.major_required.required_credits}
-                        className="h-2 bg-red-200"
+                        className="h-2 bg-purple-200 rounded-full overflow-hidden"
                       />
                     </div>
                     <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-blue-700 flex items-center gap-1">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="font-bold text-blue-700 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                           전공선택
                         </span>
-                        <span className="font-bold text-blue-800">
+                        <span className="font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded-lg">
                           {Math.max(
                             0,
                             track.major_subtotal.completed_credits -
@@ -1161,16 +1235,16 @@ export const SimulationView: React.FC = () => {
                             track.major_basic.required_credits -
                             track.major_required.required_credits,
                         )}
-                        className="h-2 bg-blue-200"
+                        className="h-2 bg-blue-200 rounded-full overflow-hidden"
                       />
                     </div>
-                    <div className="pt-1 border-t border-slate-200">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-semibold text-purple-700 flex items-center gap-1">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <div className="pt-2 border-t border-slate-200">
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="font-bold text-indigo-700 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
                           전공소계
                         </span>
-                        <span className="font-bold text-purple-800">
+                        <span className="font-bold text-indigo-800 bg-indigo-100 px-2 py-1 rounded-lg">
                           {track.major_subtotal.completed_credits}/
                           {track.major_subtotal.required_credits}
                         </span>
@@ -1178,7 +1252,7 @@ export const SimulationView: React.FC = () => {
                       <ProgressBar
                         value={track.major_subtotal.completed_credits}
                         max={track.major_subtotal.required_credits}
-                        className="h-2 bg-purple-200"
+                        className="h-3 bg-indigo-200 rounded-full overflow-hidden"
                       />
                     </div>
                   </div>
@@ -1192,7 +1266,7 @@ export const SimulationView: React.FC = () => {
           <Button
             onClick={simulation.resetSimulation}
             variant="secondary"
-            className="w-full"
+            className="w-full py-3 rounded-xl hover:scale-105 transition-all duration-300"
             disabled={!simulation.isModified}
           >
             초기화
@@ -1200,7 +1274,7 @@ export const SimulationView: React.FC = () => {
           <Button
             onClick={simulation.saveSimulation}
             variant="primary"
-            className="w-full"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 transition-all duration-300"
             disabled={!simulation.isModified}
           >
             저장
@@ -1208,7 +1282,7 @@ export const SimulationView: React.FC = () => {
           <Button
             onClick={simulation.cancelChanges}
             variant="outline"
-            className="w-full"
+            className="w-full py-3 rounded-xl hover:scale-105 transition-all duration-300"
             disabled={!simulation.isModified}
           >
             취소

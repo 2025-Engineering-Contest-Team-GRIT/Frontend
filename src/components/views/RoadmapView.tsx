@@ -235,25 +235,40 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
   };
 
   return (
-    <div className="relative h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden animate-fade-in">
+    <div className="relative h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-white animate-fade-in">
+      {/* Animated background blobs */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-300 opacity-20 rounded-full blur-3xl animate-blob1" />
+        <div className="absolute -bottom-32 right-0 w-96 h-96 bg-indigo-300 opacity-20 rounded-full blur-3xl animate-blob2" />
+        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-purple-300 opacity-15 rounded-full blur-3xl animate-float" />
+      </div>
+
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-60 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 animate-fade-in">
+      <div className="absolute top-0 left-0 right-0 z-60 bg-white/90 backdrop-blur-lg border-b border-slate-200/50 animate-fade-down">
         <div className="flex items-center justify-between p-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 animate-pop">졸업 로드맵</h1>
-            <p className="text-slate-600 mt-1">
-              현재 {currentGrade}학년 {currentSemester}학기 · 전체 이수 과목{" "}
-              {(() => {
-                let total = 0;
-                let completed = 0;
-                roadmap.forEach((semester) => {
-                  semester.courses.forEach((course) => {
-                    total++;
-                    if (course.status === "COMPLETED") completed++;
+            <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 animate-gradient-x mb-2">
+              졸업 로드맵
+            </h1>
+            <p className="text-slate-600 mt-1 text-lg">
+              현재{" "}
+              <span className="font-bold text-indigo-600">
+                {currentGrade}학년 {currentSemester}학기
+              </span>{" "}
+              · 전체 이수 과목{" "}
+              <span className="font-bold text-green-600">
+                {(() => {
+                  let total = 0;
+                  let completed = 0;
+                  roadmap.forEach((semester) => {
+                    semester.courses.forEach((course) => {
+                      total++;
+                      if (course.status === "COMPLETED") completed++;
+                    });
                   });
-                });
-                return `${completed}/${total}`;
-              })()}
+                  return `${completed}/${total}`;
+                })()}
+              </span>
               과목
             </p>
           </div>
@@ -266,7 +281,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
       {/* Main roadmap container (flex row) */}
       <div
         ref={containerRef}
-        className="absolute inset-0 pt-24 overflow-auto animate-fade-in"
+        className="absolute inset-0 pt-28 overflow-auto animate-fade-in"
         style={{ scrollBehavior: "smooth" }}
       >
         <div className="relative min-w-[900px] h-full p-8 animate-fade-in">
@@ -308,7 +323,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
           </svg>
 
           {/* Flex row: 학년/학기별 column */}
-          <div className="flex flex-row gap-6 relative z-20">
+          <div className="flex flex-row gap-8 relative z-20">
             {Object.entries(coursesByYearSemester)
               .map(([key, semesterCourses]) => {
                 const [year, semester] = key.split("-").map(Number);
@@ -316,13 +331,17 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               })
               .sort((a, b) => a.year - b.year || a.semester - b.semester)
               .map((item, idx) => (
-                <div key={item.key} className="flex flex-col items-center w-[260px]">
+                <div
+                  key={item.key}
+                  className="flex flex-col items-center w-[280px] animate-fade-up"
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
                   {/* Semester header */}
-                  <div className="z-10 bg-white/90 backdrop-blur-lg rounded-xl shadow-lg border border-slate-200/80 p-3 mb-4 animate-pop w-full">
-                    <h3 className="font-bold text-slate-800 text-center">
+                  <div className="z-10 bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl border-2 border-slate-200/80 p-4 mb-6 animate-pop w-full hover:scale-105 transition-all duration-300">
+                    <h3 className="font-bold text-center text-lg bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                       {item.year}학년 {item.semester}학기
                     </h3>
-                    <p className="text-xs text-slate-600 text-center mt-1">
+                    <p className="text-xs text-slate-600 text-center mt-2 bg-slate-100 px-3 py-1 rounded-full">
                       {item.semesterCourses.length}과목
                     </p>
                   </div>
@@ -334,12 +353,13 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
                       return (
                         <div
                           key={`${item.key}-${course.courseId}`}
-                          className={`relative transition-all duration-300 transform animate-pop ${
-                            focusedCourse === course.courseId ? "scale-105 z-20" : "z-10"
+                          className={`relative transition-all duration-500 transform animate-pop ${
+                            focusedCourse === course.courseId ? "scale-110 z-20" : "z-10"
                           } opacity-100`}
                           style={{
-                            width: "260px",
+                            width: "280px",
                             height: `${COURSE_CARD_HEIGHT}px`,
+                            animationDelay: `${index * 0.1}s`,
                           }}
                           onMouseEnter={() => handleCourseFocus(course.courseId)}
                           onMouseLeave={() => handleCourseFocus(null)}
@@ -367,38 +387,44 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               ))}
           </div>
           {/* Legend */}
-          <div className="fixed bottom-8 transition-all opacity-45 hover:opacity-100 right-8 bg-white/90 backdrop-blur-lg rounded-xl shadow-lg border border-slate-200/80 p-4 z-20 animate-fade-in">
-            <h4 className="font-semibold text-slate-800 mb-3">범례</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span className="text-slate-600">이수 완료</span>
+          <div className="fixed bottom-8 transition-all opacity-60 hover:opacity-100 right-8 bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border-2 border-slate-200/80 p-6 z-20 animate-fade-in hover:scale-105 duration-300">
+            <h4 className="font-bold mb-4 text-lg bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500">
+              범례
+            </h4>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-emerald-50 transition-colors">
+                <div className="w-4 h-4 bg-emerald-500 rounded-full shadow-lg"></div>
+                <span className="text-slate-700 font-medium">이수 완료</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-slate-600">수강 중</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors">
+                <div className="w-4 h-4 bg-blue-500 rounded-full shadow-lg"></div>
+                <span className="text-slate-700 font-medium">수강 중</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                <span className="text-slate-600">AI 추천</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-amber-50 transition-colors">
+                <div className="w-4 h-4 bg-amber-500 rounded-full shadow-lg"></div>
+                <span className="text-slate-700 font-medium">AI 추천</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span className="text-slate-600">전공 필수</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-purple-50 transition-colors">
+                <div className="w-4 h-4 bg-purple-500 rounded-full shadow-lg"></div>
+                <span className="text-slate-700 font-medium">전공 필수</span>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-xs text-slate-500">
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 과목 위에 마우스를 올려서
                 <br />
-                선수과목(빨간선)과 후수과목(녹색선) 연결을 확인하세요
+                <span className="text-red-500 font-medium">선수과목(빨간선)</span>과{" "}
+                <span className="text-green-500 font-medium">후수과목(녹색선)</span>
+                <br />
+                연결을 확인하세요
               </p>
             </div>
           </div>
         </div>
         {toast && (
           <div className="animate-fade-in">
-            <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 bg-blue-600 text-white">
+            <div className="fixed bottom-8 right-8 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white backdrop-blur-lg border-2 border-white/20">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               <span className="font-semibold">{toast}</span>
             </div>
           </div>
