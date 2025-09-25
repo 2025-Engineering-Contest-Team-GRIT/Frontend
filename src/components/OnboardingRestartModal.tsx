@@ -12,7 +12,7 @@ interface OnboardingRestartModalProps {
   onClose?: () => void;
   setError?: (error: string) => void;
   error?: string;
-"use client";
+  "use client";
 }
 
 export const OnboardingRestartModal: React.FC<OnboardingRestartModalProps> = ({
