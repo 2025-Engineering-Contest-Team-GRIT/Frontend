@@ -6,16 +6,16 @@ export enum StudentStatus {
 export enum CareerPath {
   NONE = "미정",
   MOBILE_SOFTWARE = "모바일소프트웨어",
-  BIG_DATA = "빅데이터",
   WEB_ENGINEERING = "웹공학",
+  BIG_DATA = "빅데이터",
   DIGITAL_CONTENTS_VR = "디지털콘텐츠·가상현실",
 }
 
 export const CareerPathList: CareerPath[] = [
   CareerPath.NONE,
   CareerPath.MOBILE_SOFTWARE,
-  CareerPath.BIG_DATA,
   CareerPath.WEB_ENGINEERING,
+  CareerPath.BIG_DATA,
   CareerPath.DIGITAL_CONTENTS_VR,
 ];
 
