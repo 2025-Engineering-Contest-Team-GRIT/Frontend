@@ -111,7 +111,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
       // 원래 학년/학기에서 현재 학년/학기로의 차이 계산
       const yearDiff = currentGrade - originalYear;
       let targetYear = originalYear + yearDiff;
-      let targetSemester = originalSemester;
+      const targetSemester = originalSemester;
 
       // 현재 학기보다 같거나 이후로 배치
       const targetPeriod = targetYear * 10 + targetSemester;
