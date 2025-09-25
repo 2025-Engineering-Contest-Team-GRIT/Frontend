@@ -3,59 +3,28 @@
 import React, { useState } from "react";
 import { Button } from "./Button";
 import { IconLock, IconX, IconRefreshCw } from "./common";
-import { useRouter } from "next/router";
 
 interface OnboardingRestartModalProps {
   isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (password: string) => void;
   isLoading?: boolean;
-  setIsLoading?: (loading: boolean) => void;
-  onClose?: () => void;
-  setError?: (error: string) => void;
   error?: string;
-  "use client";
 }
 
 export const OnboardingRestartModal: React.FC<OnboardingRestartModalProps> = ({
   isOpen,
+  onClose,
+  onConfirm,
   isLoading = false,
-  setIsLoading = () => {},
-  onClose = () => {},
-  setError = () => {},
   error = "",
 }) => {
   const [password, setPassword] = useState("");
-  const router = useRouter();
-
-  const handleOnboardingRestart = async (password: string) => {
-    setIsLoading(true);
-    setError("");
-
-    try {
-      // 세션 스토리지에 임시 비밀번호 저장
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("onboarding_temp_pw", password);
-      }
-
-      // 온보딩 페이지로 이동
-      router.push("/onboarding");
-      onClose();
-    } catch (err) {
-      setError("온보딩 재시작 중 오류가 발생했습니다. 다시 시도해주세요.");
-      console.error("Onboarding restart error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    onClose();
-    setError("");
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password.trim()) {
-      handleOnboardingRestart(password);
+      onConfirm(password);
     }
   };
 
@@ -67,8 +36,8 @@ export const OnboardingRestartModal: React.FC<OnboardingRestartModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 w-screen h-screen flex items-center justify-center p-4 z-[9999]">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative z-[10000]">
+    <div className="fixed inset-0 w-screen h-screen flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative z-[1000]">
         {/* Close button */}
         <button
           onClick={handleClose}
@@ -174,8 +143,6 @@ export const OnboardingRestartModal: React.FC<OnboardingRestartModalProps> = ({
           </p>
         </div>
       </div>
-      {/* Modal background overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-40 z-[-1]" />
     </div>
   );
 };
